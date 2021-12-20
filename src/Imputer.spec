@@ -1,0 +1,12 @@
+author = Artur Tarassow
+email = atecon@posteo.de
+version = 0.1
+date = 2021-12-20
+description = Strategies for imputing missing values
+tags = C13 C52
+min-version = 2021d
+public = impute
+help = Imputer_help.txt
+sample-script = Imputer_sample.inp
+depends = extra PanelTool
+# provider = OPTIONAL

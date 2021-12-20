@@ -1,0 +1,33 @@
+TBA
+
+For a more detailed manual, see <https://github.com/atecon/PairPlot/blob/master/README.md>.
+
+Please report bugs or comments on the gretl mailing list or write to atecon@posteo.de.
+
+
+
+Public function
+===============
+
+PairPlot(const list L, const series factor[null], bundle opts[null])
+========
+Parameters:
+-----------
+L        -- list, List of series to plot.
+factor   -- series, Categorical (numeric or string-valued) variable for
+            mapping plot aspects to different colors and/or points/ circles
+            (optional, default: null).
+opts     -- bundle, Optional bundle for passing additional parameters. See
+            below for explanation (optional, default: null)
+
+
+Returns:
+--------
+An integer of value '0' (FALSE) if no error occurs, otherwise 1 (TRUE).
+
+
+
+Changelog:
+----------
+Version 0.1 (December 2021):
+  - Initial version
