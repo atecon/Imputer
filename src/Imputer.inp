@@ -2,10 +2,9 @@ function series impute (const series y, const string method)
     /* Public function for imputing missing values of 'y' by some method.
     return: series, imputed series. */
 
-    print method
-    string function_name = method_to_function_map(method)
-
-    series ret = feval(function_name, y)
+    string prefix = $datatype == 3 ? "p" : ""
+    string function_name = sprintf("%s%s", prefix, method_to_function_map(method))
+    series ret = missing(y) ? feval(function_name, y) : y
 
     return ret
 end function
@@ -16,9 +15,9 @@ function string method_to_function_map (const string method)
     return: string, Function name being called. */
 
     bundle Map = _(\
-                   min = "impute_min",\
-                   max = "impute_max",
-                   mean = "impute_mean",
+                   min = "min",\
+                   max = "max",
+                   mean = "mean",
                    median = "quantile",
                    ffill = "first",
                    bfill = "last",
@@ -30,29 +29,3 @@ function string method_to_function_map (const string method)
 end function
 
 
-function series impute_mode (const series y)
-    /* Compute most frequent value for each cross-sectional unit.
-    return: series, constant value for each cross-sectional unit.
-
-    Dependency: extra.gfn */
-
-    errorif(!nobs(y), "No valid observations.")
-
-    set skip_missing off
-
-    scalar N = $datatype == 3 ? ($nobs / $pd) : 1
-    matrix m = mshape({y}, $pd, N)
-    matrix mat = mshape(NA, N, 1)
-
-    loop i=1..N
-        mat[i] = onemode(m[,i])[1]
-    endloop
-
-    set skip_missing on
-
-    series ret = pexpand(mat)
-    string desc = get_description("pmode", argname(y), -1)
-    setinfo ret --description="@desc"
-
-    return ret
-end function
