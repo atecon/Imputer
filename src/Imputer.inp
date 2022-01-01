@@ -2,16 +2,9 @@ function series impute (const series y, const string method)
     /* Public function for imputing missing values of 'y' by some 'method'.
     return: series, imputed series. */
 
-    /*string prefix = $datatype == 3 ? "p" : ""
-    string function_name = sprintf("%s%s",\
-                                   prefix,\
-                                   method_to_function_map(method))
-    */
-
     string datatype = $datatype == 3 ? "panel" : "else"
     # Get mapped function parameters - also depends on datatype
     bundle Func = method_to_function_map(method)["@datatype"]
-
 
     if Func.dtype == "series"
         series ret = missing(y) ? feval(Func.method, y) : y
@@ -42,19 +35,129 @@ function bundle method_to_function_map (const string method)
                 else = _(method = "mean", dtype = "series")\
                 )
     Map.median = _(\
-                panel = _(method = "pquantile", dtype = "series", value = 0.5),\
+                panel = _(method = "pmedian", dtype = "series"),\
                 else = _(method = "median", dtype = "series")\
                 )
+    Map.cum = _(\
+                panel = _(method = "pcum", dtype = "series"),\
+                else = _(method = "cum", dtype = "series")\
+                )
+    Map.mode = _(\
+                panel = _(method = "mode", dtype = "series"),\
+                else = _(method = "mode", dtype = "series")\
+                )
 
-    /*    _(\
-                   ffill = "first",
-                   bfill = "last",
-                   mode = "mode",
-                   sts= "sts"\
-                   )
-    */
+    Map.first = _(\
+                panel = _(method = "first", dtype = "series"),\
+                else = _(method = "first", dtype = "series")\
+                )
+
+    Map.last = _(\
+                panel = _(method = "last", dtype = "series"),\
+                else = _(method = "last", dtype = "series")\
+                )
 
     return Map["@method"]
 end function
 
 
+function scalar get_number_of_cross_units (void)
+    /* Return number of cross-sectional units. In case of time-series and cross-sectional data, set N = 1.
+    return: int, number of cross-sectional units. */
+
+    return $datatype == 3 ? ($nobs / $pd) : 1
+end function
+
+
+function scalar get_number_of_time_periods (void)
+    /* Return number of time-periods. In case of cross-sectional data, T=1.
+    return: int, number of time-periods. */
+
+    if $datatype == 1
+        return 1
+    elif $datatype == 2
+        return $nobs
+    elif $datatype == 3
+        return $pd
+    else
+        funcerr("Data type not supported.")
+    endif
+end function
+
+
+function series mode (const series y)
+    /* Compute most frequent value for each cross-sectional unit.
+    return: series, constant value for each cross-sectional unit.
+
+    Dependency: extra.gfn */
+
+    errorif(!nobs(y), "No valid observations.")
+
+    set skip_missing off
+
+    scalar N = get_number_of_cross_units()
+    scalar T = get_number_of_time_periods()
+    matrix m = mshape({y}, T, N)
+    matrix mat = mshape(NA, N, 1)
+
+    loop i=1..N
+        mat[i] = onemode(m[,i])[1]
+    endloop
+
+    set skip_missing on
+
+    series ret = $datatype == 3 ? pexpand(mat) : mat
+    string desc = get_description("mode", argname(y), -1)
+    setinfo ret --description="@desc"
+
+    return ret
+end function
+
+
+function series helper_first_last (const series y, const bool do_last)
+    /* Wrapper for first() and last()
+    return: series, respective values. */
+
+    set skip_missing off
+
+    scalar N = get_number_of_cross_units()
+    scalar T = get_number_of_time_periods()
+    matrix m = mshape({y}, T, N)
+    matrix ret = mshape(NA, N, 1)
+
+    loop i=1..N
+        matrix mask = ok(m[,i])
+        matrix vals = selifr(m[,i], mask)
+
+        scalar idx = do_last == TRUE ? rows(vals) : 1
+        ret[i] = sum(mask) ? vals[idx] : NA
+    endloop
+
+    set skip_missing on
+
+    return $datatype == 3 ? pexpand(ret) : ret
+end function
+
+
+function series first (const series y)
+    /* Compute first valid value for each panel unit. Expand this constant value for each unit to a series. */
+
+    series ret = helper_first_last(y, FALSE)
+
+    string desc = get_description("first", argname(y), -1)
+    setinfo ret --description="@desc"
+
+    return ret
+end function
+
+
+function series last (const series y)
+    /* Compute last valid value for each panel unit. Expand this constant value for each unit to a series. */
+
+    series ret = helper_first_last(y, TRUE)
+
+    string desc = get_description("last", argname(y), -1)
+    setinfo ret --description="@desc"
+
+    return ret
+end function
