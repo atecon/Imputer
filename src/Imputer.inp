@@ -1,29 +1,58 @@
 function series impute (const series y, const string method)
-    /* Public function for imputing missing values of 'y' by some method.
+    /* Public function for imputing missing values of 'y' by some 'method'.
     return: series, imputed series. */
 
-    string prefix = $datatype == 3 ? "p" : ""
-    string function_name = sprintf("%s%s", prefix, method_to_function_map(method))
-    series ret = missing(y) ? feval(function_name, y) : y
+    /*string prefix = $datatype == 3 ? "p" : ""
+    string function_name = sprintf("%s%s",\
+                                   prefix,\
+                                   method_to_function_map(method))
+    */
+
+    string datatype = $datatype == 3 ? "panel" : "else"
+    # Get mapped function parameters - also depends on datatype
+    bundle Func = method_to_function_map(method)["@datatype"]
+
+
+    if Func.dtype == "series"
+        series ret = missing(y) ? feval(Func.method, y) : y
+    else
+        funcerr "Case not covered, yet."
+    endif
 
     return ret
 end function
 
 
-function string method_to_function_map (const string method)
+function bundle method_to_function_map (const string method)
     /* Mapping method to function name being called.
     return: string, Function name being called. */
 
-    bundle Map = _(\
-                   min = "min",\
-                   max = "max",
-                   mean = "mean",
-                   median = "quantile",
+    bundle Map = null
+
+    Map.min = _(\
+                panel = _(method = "pmin", dtype = "series"),\
+                else = _(method = "min", dtype = "series")\
+                )
+    Map.max = _(\
+                panel = _(method = "pmax", dtype = "series"),\
+                else = _(method = "max", dtype = "series")\
+                )
+    Map.mean = _(\
+                panel = _(method = "pmean", dtype = "series"),\
+                else = _(method = "mean", dtype = "series")\
+                )
+    Map.median = _(\
+                panel = _(method = "pquantile", dtype = "series", value = 0.5),\
+                else = _(method = "median", dtype = "series")\
+                )
+
+    /*    _(\
                    ffill = "first",
                    bfill = "last",
                    mode = "mode",
                    sts= "sts"\
                    )
+    */
 
     return Map["@method"]
 end function
