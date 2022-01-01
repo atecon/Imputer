@@ -1,0 +1,63 @@
+clear
+set verbose off
+include Imputer.gfn
+
+
+# This is how it works for panel datasets
+nulldata 12 --preserve
+setobs 3 1:1 --stacked-time-series
+series y = {1; 2; 3;\
+            4; NA; 6;\
+            NA; 8; 9;\
+            NA; NA; NA\
+            }
+
+print "Impute by first valid value"
+y_imputed = impute(y, "first")
+print y y_imputed -o
+
+
+
+# Construct a toy time-series dataset
+nulldata 4 --preserve
+setobs 4 "2020:1" --time-series
+
+series y = {1, NA, 3, NA}'
+series x = {1, 2, 2, NA}'
+
+# Impute by some method
+print "Impute by minimum"
+eval impute(y, "min")
+
+print "Impute by maximum"
+eval impute(y, "max")
+
+print "Impute by first valid value"
+eval impute(y, "first")
+
+print "Impute by last valid value"
+eval impute(y, "last")
+
+print "Impute by mean valid value"
+eval impute(y, "mean")
+
+print "Impute by median valid value"
+eval impute(y, "median")
+
+print "Impute by most frequent value"
+eval impute(x, "mode")
+
+
+# Use STS model from the "StrucTiSM" package for time-series
+open bjg.gdt --quiet --preserve
+# Impose some missing values
+gappy = lg
+smpl 1954:3 1955:6
+gappy = NA
+smpl full
+# assume a deterministic trend (optional)
+series filled = impute_by_sts(gappy, _(trend = 2))
+# Comparison
+gnuplot lg filled --with-lines --time-series --output=display
+
+

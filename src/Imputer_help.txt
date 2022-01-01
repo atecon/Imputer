@@ -16,26 +16,71 @@ Parameters:
 y       -- series, target on which to impute missing values
 method  -- string, method (or strategy) by which to impute missing values.
            Note, in case of a panel dataset, the method is applied to each
-           cross-sectional unit separately. The  following methods are supported
+           cross-sectional unit separately. The following methods are supported
 
-             - "min": Replace missing values using the minimum of 'y'
-             - "max": Replace missing values using the maximum of 'y'
-             - "mean": Replace missing values using the mean value of 'y'
-             - "median": Replace missing values using the median value of 'y'
-             - "cum": Replace missing values using the cumulated value of 'y'
-             - "mode": Replace missing values using the most frequent value of
-               'y'
-             - "first": Replace missing values using the first valid
-               observation value of 'y'
-             - "last": Replace missing values using the last valid
-               observation value of 'y'
-
-
+            "min": Replace missing values using the minimum of 'y'
+            "max": Replace missing values using the maximum of 'y'
+            "mean": Replace missing values using the mean value of 'y'
+            "median": Replace missing values using the median value of 'y'
+            "cum": Replace missing values using the cumulated value of 'y'
+            "mode": Replace missing values using the most frequent value of
+              'y'
+            "first": Replace missing values using the first valid
+              observation value of 'y'
+            "last": Replace missing values using the last valid
+              observation value of 'y'
 
 Returns:
 --------
 Original series 'y' but with replaced missing values.
 
+
+
+impute_by_sts(const series y, bundle opts[null])
+========
+Impute missing values of 'y' by means of a structural time-series model (using the 'StrucTiSM' package). For details see the manual of the 'StrucTiSM' package.
+
+Parameters:
+-----------
+y       -- series, target on which to impute missing values
+opts    -- bundle, Optional key-value pairs can be passed to determine the
+           type of components which are passed to the STSM_setup() function:
+           "seasonal" (default 2 = stochastic with dummies)
+           "slope" (default: 1 = stochastic)
+           "trend" (default: 1 = stochastic)
+           "irregular" (default: 1 = with irregular component)
+
+Returns:
+--------
+Original series 'y' but with replaced missing values.
+
+
+first(const series y)
+========
+Compute first valid value for cross-sectional and time-series datasets, respectively. In case of a panel dataset, the first valid value of each panel unit is obtained instead.
+
+Parameters:
+-----------
+y       -- series, target series
+
+
+Returns:
+--------
+Series with the first valid value of "y" (for each cross-sectional in case of a panel dataset). If no valid values exists for a unit, NA is returned.
+
+
+last(const series y)
+========
+Compute last valid value for cross-sectional and time-series datasets, respectively. In case of a panel dataset, the last valid value of each panel unit is obtained instead.
+
+Parameters:
+-----------
+y       -- series, target series
+
+
+Returns:
+--------
+Series with the last valid value of "y" (for each cross-sectional in case of a panel dataset). If no valid values exists for a unit, NA is returned.
 
 
 Changelog:

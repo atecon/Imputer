@@ -2,10 +2,10 @@ set verbose off
 clear
 
 set assert stop
-#include assertion.gfn
 include extra.gfn
+include StrucTiSM.gfn
 #include PanelTools.gfn
-include "../PanelTools/src/PanelTools.inp" --force # TODO: switch back to gfn later
+#include "../PanelTools/src/PanelTools.inp" --force # TODO: switch back to gfn later
 
 include "./src/Imputer.inp" --force
 
@@ -169,6 +169,31 @@ assert(get_number_of_time_periods() == $nobs)
 nulldata 12 --preserve
 setobs 3 1:1 --stacked-time-series
 assert(get_number_of_time_periods() == $pd)
+
+
+
+
+function void test_impute_by_sts (const series y)
+    print "Start testing function impute_by_sts() using default values."
+
+    # Given
+    target = y
+    smpl 1954:3 1955:6
+    target = NA
+    smpl full
+    scalar expected_n_missings = 0
+
+    # When
+    series ret = impute_by_sts(y, _(trend = 2))
+    scalar actual = sum(missing(ret))
+
+    # Then
+    assert(actual == expected_n_missings)
+end function
+open bjg.gdt --quiet
+test_impute_by_sts(lg)
+
+
 
 
 

@@ -7,9 +7,7 @@
 <description>Impute missing values by some method</description>
 <tags>C13 C52</tags>
 <help>
-TBA
-
-For a more detailed manual, see &lt;https://github.com/atecon/PairPlot/blob/master/README.md&gt;.
+This package offers various methods for imputing missing values, either in cross-sectional, time-series or panel data sets.
 
 Please report bugs or comments on the gretl mailing list or write to atecon@posteo.de.
 
@@ -18,32 +16,89 @@ Please report bugs or comments on the gretl mailing list or write to atecon@post
 Public function
 ===============
 
-PairPlot(const list L, const series factor[null], bundle opts[null])
+impute(const series y, const string method)
 ========
+Call some method for imputing missing values of series &quot;y&quot;.
+
 Parameters:
 -----------
-L        -- list, List of series to plot.
-factor   -- series, Categorical (numeric or string-valued) variable for
-            mapping plot aspects to different colors and/or points/ circles
-            (optional, default: null).
-opts     -- bundle, Optional bundle for passing additional parameters. See
-            below for explanation (optional, default: null)
+y       -- series, target on which to impute missing values
+method  -- string, method (or strategy) by which to impute missing values.
+           Note, in case of a panel dataset, the method is applied to each
+           cross-sectional unit separately. The following methods are supported
+
+            &quot;min&quot;: Replace missing values using the minimum of 'y'
+            &quot;max&quot;: Replace missing values using the maximum of 'y'
+            &quot;mean&quot;: Replace missing values using the mean value of 'y'
+            &quot;median&quot;: Replace missing values using the median value of 'y'
+            &quot;cum&quot;: Replace missing values using the cumulated value of 'y'
+            &quot;mode&quot;: Replace missing values using the most frequent value of
+              'y'
+            &quot;first&quot;: Replace missing values using the first valid
+              observation value of 'y'
+            &quot;last&quot;: Replace missing values using the last valid
+              observation value of 'y'
+
+Returns:
+--------
+Original series 'y' but with replaced missing values.
+
+
+
+impute_by_sts(const series y, bundle opts[null])
+========
+Impute missing values of 'y' by means of a structural time-series model (using the 'StrucTiSM' package). For details see the manual of the 'StrucTiSM' package.
+
+Parameters:
+-----------
+y       -- series, target on which to impute missing values
+opts    -- bundle, Optional key-value pairs can be passed to determine the
+           type of components which are passed to the STSM_setup() function:
+           &quot;seasonal&quot; (default 2 = stochastic with dummies)
+           &quot;slope&quot; (default: 1 = stochastic)
+           &quot;trend&quot; (default: 1 = stochastic)
+           &quot;irregular&quot; (default: 1 = with irregular component)
+
+Returns:
+--------
+Original series 'y' but with replaced missing values.
+
+
+first(const series y)
+========
+Compute first valid value for cross-sectional and time-series datasets, respectively. In case of a panel dataset, the first valid value of each panel unit is obtained instead.
+
+Parameters:
+-----------
+y       -- series, target series
 
 
 Returns:
 --------
-An integer of value '0' (FALSE) if no error occurs, otherwise 1 (TRUE).
+Series with the first valid value of &quot;y&quot; (for each cross-sectional in case of a panel dataset). If no valid values exists for a unit, NA is returned.
 
+
+last(const series y)
+========
+Compute last valid value for cross-sectional and time-series datasets, respectively. In case of a panel dataset, the last valid value of each panel unit is obtained instead.
+
+Parameters:
+-----------
+y       -- series, target series
+
+
+Returns:
+--------
+Series with the last valid value of &quot;y&quot; (for each cross-sectional in case of a panel dataset). If no valid values exists for a unit, NA is returned.
 
 
 Changelog:
 ----------
-Version 0.1 (December 2021):
+Version 0.1 (January 2022):
   - Initial version
 </help>
-<depends count="2">
-PanelTools extra </depends>
-<provider>PanelTools</provider>
+<depends count="3">
+extra PanelTools StrucTiSM </depends>
 <gretl-function name="impute" type="series">
  <params count="2">
   <param name="y" type="series" const="true"/>
@@ -59,6 +114,55 @@ if Func.dtype == &quot;series&quot;
 else
   funcerr &quot;Case not covered, yet.&quot;
 endif
+return ret
+</code>
+</gretl-function>
+<gretl-function name="impute_by_sts" type="series">
+ <params count="2">
+  <param name="y" type="series" const="true">
+<description>Target series</description>
+  </param>
+  <param name="self" type="bundle" optional="true">
+<description>Optional parameters</description>
+  </param>
+ </params>
+<code>/* Impute missing values by means of an basic structural time-series model.
+Dependency: StrucTiSM.gfn */
+errorif($datatype != 2, &quot;Works only on time-series dataset.&quot;)
+series y_filled = NA
+bundle defaults = sts_default_values()
+if exists(self)
+  self = self + defaults # over-write defaults
+else
+  self = defaults
+endif
+bundle Mod = STSM_setup(y, self.irregular, self.trend, self.slope, self.seasonal)
+STSM_estimate(&amp;Mod)
+list components = STSM_components(Mod)
+errorif(nelem(components) == 0, &quot;Error: Failed to estimate model parameters.&quot;)
+series y_filled = ok(y) ? y : y_level + y_seas
+return y_filled
+</code>
+</gretl-function>
+<gretl-function name="first" type="series">
+ <params count="1">
+  <param name="y" type="series" const="true"/>
+ </params>
+<code>/* Compute first valid value for each panel unit. Expand this constant value for each unit to a series. */
+series ret = helper_first_last(y, FALSE)
+string desc = get_description(&quot;first&quot;, argname(y), -1)
+setinfo ret --description=&quot;@desc&quot;
+return ret
+</code>
+</gretl-function>
+<gretl-function name="last" type="series">
+ <params count="1">
+  <param name="y" type="series" const="true"/>
+ </params>
+<code>/* Compute last valid value for each panel unit. Expand this constant value for each unit to a series. */
+series ret = helper_first_last(y, TRUE)
+string desc = get_description(&quot;last&quot;, argname(y), -1)
+setinfo ret --description=&quot;@desc&quot;
 return ret
 </code>
 </gretl-function>
@@ -145,30 +249,105 @@ set skip_missing on
 return $datatype == 3 ? pexpand(ret) : ret
 </code>
 </gretl-function>
-<gretl-function name="first" type="series" private="1">
- <params count="1">
-  <param name="y" type="series" const="true"/>
- </params>
-<code>/* Compute first valid value for each panel unit. Expand this constant value for each unit to a series. */
-series ret = helper_first_last(y, FALSE)
-string desc = get_description(&quot;first&quot;, argname(y), -1)
-setinfo ret --description=&quot;@desc&quot;
-return ret
+<gretl-function name="sts_default_values" type="bundle" private="1">
+<code>/* Default values of STS model. */
+bundle B = null
+# seasonal: 0 = none, 1 = stochastic with trigonometric terms,
+# 2 = stochastic with dummies, 3 = deterministic dummies
+B.seasonal = 2
+# slope 0 = none, 1 = stochastic, 2 = deterministic
+B.slope = 1
+# type of trend: 1 = stochastic, 2 = deterministic
+B.trend = 1
+B.irregular = TRUE
+return B
 </code>
 </gretl-function>
-<gretl-function name="last" type="series" private="1">
- <params count="1">
-  <param name="y" type="series" const="true"/>
+<gretl-function name="get_description" type="string" private="1">
+ <params count="3">
+  <param name="fname" type="string" const="true"/>
+  <param name="yname" type="string" const="true"/>
+  <param name="value" type="scalar"/>
  </params>
-<code>/* Compute last valid value for each panel unit. Expand this constant value for each unit to a series. */
-series ret = helper_first_last(y, TRUE)
-string desc = get_description(&quot;last&quot;, argname(y), -1)
-setinfo ret --description=&quot;@desc&quot;
-return ret
+<code>/* Retrieve series' description.
+return: string */
+scalar value = !exists(value) ? 1 : value
+bundle B
+B.ppolyfit = sprintf(&quot;polynomial fit of %s (order=%d)&quot;, yname, value)
+B.cum = sprintf(&quot;cumuluated values of %s&quot;, yname)
+B.pcum = sprintf(&quot;cumuluated values of %s&quot;, yname)
+B.pquantile = sprintf(&quot;quantile (q=%g) values of %s&quot;, value, yname)
+B.pxfraction = sprintf(&quot;cross-sectional fractions of %s (value=%g)&quot;, yname, value)
+B.first = sprintf(&quot;first valid values of %s&quot;, yname)
+B.last = sprintf(&quot;last valid values of %s&quot;, yname)
+B.mode = sprintf(&quot;modes of %s&quot;, yname)
+B.median = sprintf(&quot;median of %s&quot;, yname)
+B.pxmean = sprintf(&quot;cross-sectional means of %s&quot;, yname)
+return B[&quot;@fname&quot;]
 </code>
 </gretl-function>
 <sample-script>
+clear
+set verbose off
+include Imputer.gfn
 
+
+# This is how it works for panel datasets
+nulldata 12 --preserve
+setobs 3 1:1 --stacked-time-series
+series y = {1; 2; 3;\
+            4; NA; 6;\
+            NA; 8; 9;\
+            NA; NA; NA\
+            }
+
+print &quot;Impute by first valid value&quot;
+y_imputed = impute(y, &quot;first&quot;)
+print y y_imputed -o
+
+
+
+# Construct a toy time-series dataset
+nulldata 4 --preserve
+setobs 4 &quot;2020:1&quot; --time-series
+
+series y = {1, NA, 3, NA}'
+series x = {1, 2, 2, NA}'
+
+# Impute by some method
+print &quot;Impute by minimum&quot;
+eval impute(y, &quot;min&quot;)
+
+print &quot;Impute by maximum&quot;
+eval impute(y, &quot;max&quot;)
+
+print &quot;Impute by first valid value&quot;
+eval impute(y, &quot;first&quot;)
+
+print &quot;Impute by last valid value&quot;
+eval impute(y, &quot;last&quot;)
+
+print &quot;Impute by mean valid value&quot;
+eval impute(y, &quot;mean&quot;)
+
+print &quot;Impute by median valid value&quot;
+eval impute(y, &quot;median&quot;)
+
+print &quot;Impute by most frequent value&quot;
+eval impute(x, &quot;mode&quot;)
+
+
+# Use STS model from the &quot;StrucTiSM&quot; package for time-series
+open bjg.gdt --quiet --preserve
+# Impose some missing values
+gappy = lg
+smpl 1954:3 1955:6
+gappy = NA
+smpl full
+# assume a deterministic trend (optional)
+series filled = impute_by_sts(gappy, _(trend = 2))
+# Comparison
+gnuplot lg filled --with-lines --time-series --output=display
 </sample-script>
 </gretl-function-package>
 </gretl-functions>

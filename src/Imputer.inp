@@ -161,3 +161,76 @@ function series last (const series y)
 
     return ret
 end function
+
+
+function bundle sts_default_values (void)
+    /* Default values of STS model. */
+
+    bundle B = null
+
+    # seasonal: 0 = none, 1 = stochastic with trigonometric terms,
+    # 2 = stochastic with dummies, 3 = deterministic dummies
+    B.seasonal = 2
+    # slope 0 = none, 1 = stochastic, 2 = deterministic
+    B.slope = 1
+    # type of trend: 1 = stochastic, 2 = deterministic
+    B.trend = 1
+    B.irregular = TRUE
+
+    return B
+end function
+
+
+function series impute_by_sts (const series y "Target series",
+                               bundle self[null] "Optional parameters")
+    /* Impute missing values by means of an basic structural time-series model.
+
+    Dependency: StrucTiSM.gfn */
+
+    errorif($datatype != 2, "Works only on time-series dataset.")
+    series y_filled = NA
+
+    bundle defaults = sts_default_values()
+    if exists(self)
+        self = self + defaults # over-write defaults
+    else
+        self = defaults
+    endif
+
+    bundle Mod = STSM_setup(y, self.irregular, self.trend, self.slope, self.seasonal)
+
+    STSM_estimate(&Mod)
+    list components = STSM_components(Mod)
+
+    errorif(nelem(components) == 0,\
+            "Error: Failed to estimate model parameters.")
+
+    series y_filled = ok(y) ? y : y_level + y_seas
+
+    return y_filled
+end function
+
+
+
+function string get_description (const string fname,
+                                 const string yname,
+                                 scalar value)
+    /* Retrieve series' description.
+    return: string */
+
+    scalar value = !exists(value) ? 1 : value
+
+    bundle B
+    B.ppolyfit = sprintf("polynomial fit of %s (order=%d)", yname, value)
+    B.cum = sprintf("cumuluated values of %s", yname)
+    B.pcum = sprintf("cumuluated values of %s", yname)
+    B.pquantile = sprintf("quantile (q=%g) values of %s", value, yname)
+    B.pxfraction = sprintf("cross-sectional fractions of %s (value=%g)", yname, value)
+    B.first = sprintf("first valid values of %s", yname)
+    B.last = sprintf("last valid values of %s", yname)
+    B.mode = sprintf("modes of %s", yname)
+    B.median = sprintf("median of %s", yname)
+    B.pxmean = sprintf("cross-sectional means of %s", yname)
+
+    return B["@fname"]
+end function
