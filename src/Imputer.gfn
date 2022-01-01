@@ -66,7 +66,7 @@ Original series 'y' but with replaced missing values.
 
 first(const series y)
 ========
-Compute first valid value for cross-sectional and time-series datasets, respectively. In case of a panel dataset, the first valid value of each panel unit is obtained instead.
+Compute first valid value for cross-sectional and time-series datasets, respectively. In case of a panel dataset, the first valid value of each panel unit is obtained instead (equivalent to the pfirst() function of the &quot;PanelTools&quot; package).
 
 Parameters:
 -----------
@@ -80,7 +80,7 @@ Series with the first valid value of &quot;y&quot; (for each cross-sectional in 
 
 last(const series y)
 ========
-Compute last valid value for cross-sectional and time-series datasets, respectively. In case of a panel dataset, the last valid value of each panel unit is obtained instead.
+Compute last valid value for cross-sectional and time-series datasets, respectively. In case of a panel dataset, the last valid value of each panel unit is obtained instead (equivalent to the plast() function of the &quot;PanelTools&quot; package).
 
 Parameters:
 -----------
