@@ -3,7 +3,7 @@
 <gretl-function-package name="Imputer" minver="2021d">
 <author email="atecon@posteo.de">Artur Tarassow</author>
 <version>0.1</version>
-<date>2022-01-01</date>
+<date>2023-02-05</date>
 <description>Impute missing values by some method</description>
 <tags>C13 C52</tags>
 <help>
