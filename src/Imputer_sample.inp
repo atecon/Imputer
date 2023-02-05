@@ -1,8 +1,6 @@
 clear
 set verbose off
 include Imputer.gfn
-include PanelTools.gfn
-
 
 # This is how it works for panel datasets
 nulldata 12 --preserve
@@ -13,22 +11,20 @@ series y = {1; 2; 3;\
             NA; -12; NA\
             }
 
-print "Impute by first valid value"
+print "Impute by method"
 series y_first = impute(y, "first")
+series y_last = impute(y, "last")
 series y_mode = impute(y, "mode")
 series y_min = impute(y, "min")
-print y y_first y_mode y_min -o
-
+print y y_first y_last y_mode y_min -o
 
 
 # Construct a toy time-series dataset
 nulldata 4 --preserve
 setobs 4 "2020:1" --time-series
-
 series y = {1, NA, 3, NA}'
 series x = {1, 2, 2, NA}'
 
-# Impute by method
 print "Impute by minimum"
 eval impute(y, "min")
 
@@ -51,7 +47,8 @@ print "Impute by most frequent value"
 eval impute(x, "mode")
 
 
-# Use STS model from the "StrucTiSM" package for time-series
+# Replace missing values of time-series by STS model
+# from the "StrucTiSM" package
 open bjg.gdt --quiet --preserve
 # Impose some missing values
 gappy = lg
@@ -62,5 +59,3 @@ smpl full
 series filled = impute_by_sts(gappy, _(trend = 2))
 # Comparison
 gnuplot lg filled --with-lines --time-series --output=display
-
-

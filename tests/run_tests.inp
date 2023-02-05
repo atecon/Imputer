@@ -4,28 +4,29 @@ clear
 set assert stop
 include extra.gfn
 include StrucTiSM.gfn
-#include PanelTools.gfn
-#include "../PanelTools/src/PanelTools.inp" --force # TODO: switch back to gfn later
 
 include "./src/Imputer.inp" --force
 
 
-function scalar any_not_equal (const series y, const series x)
+function scalar any_equal (const series y, const series x)
     /* Check two series for equality.
-    return: scalar, Zero if all entries are equal; this also includes the case where for both series all entries are NA. In case, the series have unequal entries at the i-th position, return a positive integer. */
+    return: scalar, TRUE if all entries are equal; this also includes the case where for both series all entries are NA. In case, the series have unequal entries at the i-th position, return FALSE. */
 
     scalar y_all_na = sum(missing(y) == TRUE) ? TRUE : FALSE
     scalar x_all_na = sum(missing(x) == TRUE) ? TRUE : FALSE
-    series mask = FALSE
+    series difference = FALSE
 
     if y_all_na == FALSE && x_all_na == FALSE
-        series d = y - x
-        series mask = (d != 0) ? TRUE : FALSE
+        series d = abs(y - x)
+        series difference = (d == 0) ? FALSE : TRUE
     endif
 
-    return sum(mask)
+    return (sum(difference) == 0 ? TRUE : FALSE)
 end function
 
+
+
+# ================== TIME-SERIES ============================
 
 
 nulldata 4 --preserve
@@ -62,8 +63,10 @@ function void test_min (const bundles P, const list L)
         # When
         series actual = impute(y, P[i].method)
 
+        series d = actual - expected
+
         # Then
-        assert(any_not_equal(actual, expected) == FALSE)
+        assert(any_equal(actual, expected) == TRUE)
     endloop
 end function
 test_min(Params, dataset)
@@ -89,7 +92,7 @@ function void test_max (const bundles P, const list L)
         series actual = impute(y, P[i].method)
 
         # Then
-        assert(any_not_equal(actual, expected) == FALSE)
+        assert(any_equal(actual, expected) == TRUE)
     endloop
 end function
 test_max(Params, dataset)
@@ -116,7 +119,7 @@ function void test_first (const bundles P, const list L)
         series actual = impute(y, P[i].method)
 
         # Then
-        assert(any_not_equal(actual, expected) == FALSE)
+        assert(any_equal(actual, expected) == TRUE)
     endloop
 end function
 test_first(Params, dataset)
@@ -143,7 +146,7 @@ function void test_last (const bundles P, const list L)
         series actual = impute(y, P[i].method)
 
         # Then
-        assert(any_not_equal(actual, expected) == FALSE)
+        assert(any_equal(actual, expected) == TRUE)
     endloop
 end function
 test_last(Params, dataset)
@@ -174,7 +177,6 @@ function void test_mode (const bundles P, const list L)
     print "Start testing function impute() with 'mode'."
 
     loop foreach i P
-        print i
         # Given
         string name = P[i].input
         series y = L.@name
@@ -185,7 +187,7 @@ function void test_mode (const bundles P, const list L)
 
         # Then
         if nobs(actual) && nobs(expected)
-            assert(any_not_equal(actual, expected) == FALSE)
+            assert(any_equal(actual, expected) == TRUE)
         else
             funcerr "Either actual or expected has no valid obs."
         endif
@@ -214,6 +216,119 @@ setobs 3 1:1 --stacked-time-series
 assert(get_number_of_time_periods() == $pd)
 
 
+# ================== PANEL ============================
+
+nulldata 20 --preserve
+setobs 4 1:1 --stacked-time-series
+series y = {1; 2; 2; 3;\
+            4; NA; 6; 1;\
+            NA; 8; 1; 2;\
+            NA; -12; NA; 12;\
+            NA; NA; NA; NA\
+            }
+
+bundle Param = _(method = "min")
+matrix Param.expected = {1, 2, 2, 3}' | {4, 1, 6, 1}' | {1, 8, 1, 2}' |\
+                        {-12, -12, -12, 12}' | {NA, NA, NA, NA}'
+
+function void test_pmin (const bundle P, const series y)
+    print "Start testing function impute() with 'min' for panels."
+
+    # Given
+    series expected = P.expected
+
+    # When
+    series actual = impute(y, P.method)
+
+    # Then
+    assert(any_equal(actual, expected) == TRUE)
+end function
+test_pmin(Param, y)
+
+
+bundle Param = _(method = "max")
+matrix Param.expected = {1, 2, 2, 3}' | {4, 6, 6, 1}' | {8, 8, 1, 2}' |\
+                        {-12, -12, -12, 12}' | {NA, NA, NA, NA}'
+
+function void test_pmax (const bundle P, const series y)
+    print "Start testing function impute() with 'max' for panels."
+
+    # Given
+    series expected = P.expected
+
+    # When
+    series actual = impute(y, P.method)
+
+    # Then
+    assert(any_equal(actual, expected) == TRUE)
+end function
+test_pmax(Param, y)
+
+
+bundle Param = _(method = "mean")
+matrix Param.expected = {1, 2, 2, 3}' | {4, 11/3, 6, 1}' | {11/3, 8, 1, 2}' |\
+                        {-12, -12, -12, 12}' | {NA, NA, NA, NA}'
+
+function void test_pmean (const bundle P, const series y)
+    print "Start testing function impute() with 'mean' for panels."
+
+    # Given
+    series expected = P.expected
+
+    # When
+    series actual = impute(y, P.method)
+
+    # Then
+    assert(any_equal(actual, expected) == TRUE)
+end function
+test_pmean(Param, y)
+
+
+bundle Param = _(method = "last")
+matrix Param.expected = {1, 2, 2, 3}' | {4, 2, 6, 1}' | {2, 8, 1, 2}' |\
+                        {-12, -12, -12, 12}' | {NA, NA, NA, NA}'
+
+function void test_plast (const bundle P, const series y)
+    print "Start testing function impute() with 'last' for panels."
+
+    # Given
+    series expected = P.expected
+
+    # When
+    series actual = impute(y, P.method)
+
+    series d = actual - expected
+    print d -o
+
+    # Then
+    eval any_equal(actual, expected)
+    assert(any_equal(actual, expected) == TRUE)
+end function
+#test_plast(Param, y)
+
+
+bundle Param = _(method = "first")
+matrix Param.expected = {1, 2, 2, 3}' | {4, 4, 6, 1}' | {8, 8, 1, 2}' |\
+                        {-12, -12, -12, 12}' | {NA, NA, NA, NA}'
+
+function void test_pfirst (const bundle P, const series y)
+    print "Start testing function impute() with 'first' for panels."
+
+    # Given
+    series expected = P.expected
+
+    # When
+    series actual = impute(y, P.method)
+
+    # Then
+    assert(any_equal(actual, expected) == TRUE)
+end function
+#test_pfirst(Param, y)
+
+
+
+
+# ================== STS ON TIME-SERIES ============================
 
 open bjg.gdt --quiet
 

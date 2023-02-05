@@ -2,6 +2,13 @@ function series impute (const series y, const string method)
     /* Public function for imputing missing values of 'y' by some 'method'.
     return: series, imputed series. */
 
+    if $datatype == 3
+        pkg query PanelTools --quiet
+        if $result.version < 0.4
+            funcerr "At least version 0.4 of the 'PanelTools' package must be installed."
+        endif
+    endif
+
     string datatype = $datatype == 3 ? "panel" : "else"
     # Get mapped function parameters - also depends on datatype
     bundle Func = method_to_function_map(method)["@datatype"]
@@ -188,6 +195,13 @@ function series impute_by_sts (const series y "Target series",
     Dependency: StrucTiSM.gfn */
 
     errorif($datatype != 2, "Works only on time-series dataset.")
+    if $datatype == 2
+        pkg query StrucTiSM --quiet
+        if $result.version < 0.7
+            funcerr "At least version 0.7 of the 'StrucTiSM' package must be installed."
+        endif
+    endif
+
     series y_filled = NA
 
     bundle defaults = sts_default_values()
