@@ -1,6 +1,7 @@
 clear
 set verbose off
 include Imputer.gfn
+include PanelTools.gfn
 
 
 # This is how it works for panel datasets
@@ -8,13 +9,15 @@ nulldata 12 --preserve
 setobs 3 1:1 --stacked-time-series
 series y = {1; 2; 3;\
             4; NA; 6;\
-            NA; 8; 9;\
-            NA; NA; NA\
+            NA; 8; 1;\
+            NA; -12; NA\
             }
 
 print "Impute by first valid value"
-y_imputed = impute(y, "first")
-print y y_imputed -o
+series y_first = impute(y, "first")
+series y_mode = impute(y, "mode")
+series y_min = impute(y, "min")
+print y y_first y_mode y_min -o
 
 
 
@@ -25,7 +28,7 @@ setobs 4 "2020:1" --time-series
 series y = {1, NA, 3, NA}'
 series x = {1, 2, 2, NA}'
 
-# Impute by some method
+# Impute by method
 print "Impute by minimum"
 eval impute(y, "min")
 

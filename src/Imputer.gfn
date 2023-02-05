@@ -18,7 +18,7 @@ Public function
 
 impute(const series y, const string method)
 ========
-Call some method for imputing missing values of series &quot;y&quot;.
+Call method for imputing missing values of series &quot;y&quot;.
 
 Parameters:
 -----------
@@ -27,17 +27,16 @@ method  -- string, method (or strategy) by which to impute missing values.
            Note, in case of a panel dataset, the method is applied to each
            cross-sectional unit separately. The following methods are supported
 
-            &quot;min&quot;: Replace missing values using the minimum of 'y'
-            &quot;max&quot;: Replace missing values using the maximum of 'y'
-            &quot;mean&quot;: Replace missing values using the mean value of 'y'
-            &quot;median&quot;: Replace missing values using the median value of 'y'
-            &quot;cum&quot;: Replace missing values using the cumulated value of 'y'
-            &quot;mode&quot;: Replace missing values using the most frequent value of
-              'y'
+  &quot;min&quot;:    Replace missing values using the minimum of 'y'
+  &quot;max&quot;:    Replace missing values using the maximum of 'y'
+  &quot;mean&quot;:   Replace missing values using the mean value of 'y'
+  &quot;median&quot;: Replace missing values using the median value of 'y'
+  &quot;cum&quot;:    Replace missing values using the cumulated value of 'y'
+  &quot;mode&quot;:   Replace missing values using the most frequent value of 'y'
             &quot;first&quot;: Replace missing values using the first valid
-              observation value of 'y'
-            &quot;last&quot;: Replace missing values using the last valid
-              observation value of 'y'
+            observation value of 'y'
+  &quot;last&quot;:   Replace missing values using the last valid observation value of
+            'y'
 
 Returns:
 --------
@@ -47,7 +46,9 @@ Original series 'y' but with replaced missing values.
 
 impute_by_sts(const series y, bundle opts[null])
 ========
-Impute missing values of 'y' by means of a structural time-series model (using the 'StrucTiSM' package). For details see the manual of the 'StrucTiSM' package.
+Impute missing values of 'y' by means of a structural time-series model (using
+the 'StrucTiSM' package). For details see the manual of the 'StrucTiSM'
+package. Works only on time-series dataset.
 
 Parameters:
 -----------
@@ -66,26 +67,31 @@ Original series 'y' but with replaced missing values.
 
 first(const series y)
 ========
-Compute first valid value for cross-sectional and time-series datasets, respectively. In case of a panel dataset, the first valid value of each panel unit is obtained instead (equivalent to the pfirst() function of the &quot;PanelTools&quot; package).
+Compute first valid value for cross-sectional and time-series datasets,
+respectively. In case of a panel dataset, the first valid value of each panel
+unit is obtained instead (equivalent to the pfirst() function of the
+&quot;PanelTools&quot; package).
 
 Parameters:
 -----------
 y       -- series, target series
 
-
 Returns:
 --------
-Series with the first valid value of &quot;y&quot; (for each cross-sectional in case of a panel dataset). If no valid values exists for a unit, NA is returned.
+Series with the first valid value of &quot;y&quot; (for each cross-sectional in case of
+a panel dataset). If no valid values exists for a unit, NA is returned.
 
 
 last(const series y)
 ========
-Compute last valid value for cross-sectional and time-series datasets, respectively. In case of a panel dataset, the last valid value of each panel unit is obtained instead (equivalent to the plast() function of the &quot;PanelTools&quot; package).
+Compute last valid value for cross-sectional and time-series datasets,
+respectively. In case of a panel dataset, the last valid value of each panel
+unit is obtained instead (equivalent to the plast() function of the
+&quot;PanelTools&quot; package).
 
 Parameters:
 -----------
 y       -- series, target series
-
 
 Returns:
 --------
@@ -94,11 +100,22 @@ Series with the last valid value of &quot;y&quot; (for each cross-sectional in c
 
 Changelog:
 ----------
-Version 0.1 (January 2022):
+Version 0.1 (February 2023):
   - Initial version
 </help>
 <depends count="3">
 extra PanelTools StrucTiSM </depends>
+<gretl-function name="first" type="series">
+ <params count="1">
+  <param name="y" type="series" const="true"/>
+ </params>
+<code>/* Compute first valid value for each panel unit. Expand this constant value for each unit to a series. */
+series ret = helper_first_last(y, FALSE)
+string desc = get_description(&quot;first&quot;, argname(y), -1)
+setinfo ret --description=&quot;@desc&quot;
+return ret
+</code>
+</gretl-function>
 <gretl-function name="impute" type="series">
  <params count="2">
   <param name="y" type="series" const="true"/>
@@ -144,17 +161,6 @@ series y_filled = ok(y) ? y : y_level + y_seas
 return y_filled
 </code>
 </gretl-function>
-<gretl-function name="first" type="series">
- <params count="1">
-  <param name="y" type="series" const="true"/>
- </params>
-<code>/* Compute first valid value for each panel unit. Expand this constant value for each unit to a series. */
-series ret = helper_first_last(y, FALSE)
-string desc = get_description(&quot;first&quot;, argname(y), -1)
-setinfo ret --description=&quot;@desc&quot;
-return ret
-</code>
-</gretl-function>
 <gretl-function name="last" type="series">
  <params count="1">
   <param name="y" type="series" const="true"/>
@@ -166,45 +172,7 @@ setinfo ret --description=&quot;@desc&quot;
 return ret
 </code>
 </gretl-function>
-<gretl-function name="method_to_function_map" type="bundle" private="1">
- <params count="1">
-  <param name="method" type="string" const="true"/>
- </params>
-<code>/* Mapping method to function name being called.
-return: string, Function name being called. */
-bundle Map = null
-Map.min = _( panel = _(method = &quot;pmin&quot;, dtype = &quot;series&quot;), else = _(method = &quot;min&quot;, dtype = &quot;series&quot;) )
-Map.max = _( panel = _(method = &quot;pmax&quot;, dtype = &quot;series&quot;), else = _(method = &quot;max&quot;, dtype = &quot;series&quot;) )
-Map.mean = _( panel = _(method = &quot;pmean&quot;, dtype = &quot;series&quot;), else = _(method = &quot;mean&quot;, dtype = &quot;series&quot;) )
-Map.median = _( panel = _(method = &quot;pmedian&quot;, dtype = &quot;series&quot;), else = _(method = &quot;median&quot;, dtype = &quot;series&quot;) )
-Map.cum = _( panel = _(method = &quot;pcum&quot;, dtype = &quot;series&quot;), else = _(method = &quot;cum&quot;, dtype = &quot;series&quot;) )
-Map.mode = _( panel = _(method = &quot;mode&quot;, dtype = &quot;series&quot;), else = _(method = &quot;mode&quot;, dtype = &quot;series&quot;) )
-Map.first = _( panel = _(method = &quot;first&quot;, dtype = &quot;series&quot;), else = _(method = &quot;first&quot;, dtype = &quot;series&quot;) )
-Map.last = _( panel = _(method = &quot;last&quot;, dtype = &quot;series&quot;), else = _(method = &quot;last&quot;, dtype = &quot;series&quot;) )
-return Map[&quot;@method&quot;]
-</code>
-</gretl-function>
-<gretl-function name="get_number_of_cross_units" type="scalar" private="1">
-<code>/* Return number of cross-sectional units. In case of time-series and cross-sectional data, set N = 1.
-return: int, number of cross-sectional units. */
-return $datatype == 3 ? ($nobs / $pd) : 1
-</code>
-</gretl-function>
-<gretl-function name="get_number_of_time_periods" type="scalar" private="1">
-<code>/* Return number of time-periods. In case of cross-sectional data, T=1.
-return: int, number of time-periods. */
-if $datatype == 1
-  return 1
-elif $datatype == 2
-  return $nobs
-elif $datatype == 3
-  return $pd
-else
-  funcerr(&quot;Data type not supported.&quot;)
-endif
-</code>
-</gretl-function>
-<gretl-function name="mode" type="series" private="1">
+<gretl-function name="mode" type="series">
  <params count="1">
   <param name="y" type="series" const="true"/>
  </params>
@@ -225,6 +193,44 @@ series ret = $datatype == 3 ? pexpand(mat) : mat
 string desc = get_description(&quot;mode&quot;, argname(y), -1)
 setinfo ret --description=&quot;@desc&quot;
 return ret
+</code>
+</gretl-function>
+<gretl-function name="method_to_function_map" type="bundle" private="1">
+ <params count="1">
+  <param name="method" type="string" const="true"/>
+ </params>
+<code>/* Mapping method to function name being called.
+return: string, Function name being called. */
+bundle Map = null
+Map.min = _( panel = _(method = &quot;pmin&quot;, dtype = &quot;series&quot;), else = _(method = &quot;min&quot;, dtype = &quot;series&quot;) )
+Map.max = _( panel = _(method = &quot;pmax&quot;, dtype = &quot;series&quot;), else = _(method = &quot;max&quot;, dtype = &quot;series&quot;) )
+Map.mean = _( panel = _(method = &quot;pmean&quot;, dtype = &quot;series&quot;), else = _(method = &quot;mean&quot;, dtype = &quot;series&quot;) )
+Map.median = _( panel = _(method = &quot;pmedian&quot;, dtype = &quot;series&quot;), else = _(method = &quot;median&quot;, dtype = &quot;series&quot;) )
+Map.cum = _( panel = _(method = &quot;pcum&quot;, dtype = &quot;series&quot;), else = _(method = &quot;cum&quot;, dtype = &quot;series&quot;) )
+Map.mode = _( panel = _(method = &quot;pmode&quot;, dtype = &quot;series&quot;), else = _(method = &quot;mode&quot;, dtype = &quot;series&quot;) )
+Map.first = _( panel = _(method = &quot;pfirst&quot;, dtype = &quot;series&quot;), else = _(method = &quot;first&quot;, dtype = &quot;series&quot;) )
+Map.last = _( panel = _(method = &quot;plast&quot;, dtype = &quot;series&quot;), else = _(method = &quot;last&quot;, dtype = &quot;series&quot;) )
+return Map[&quot;@method&quot;]
+</code>
+</gretl-function>
+<gretl-function name="get_number_of_cross_units" type="scalar" private="1">
+<code>/* Return number of cross-sectional units. In case of time-series and cross-sectional data, set N = 1.
+return: int, number of cross-sectional units. */
+return $datatype == 3 ? ($nobs / $pd) : 1
+</code>
+</gretl-function>
+<gretl-function name="get_number_of_time_periods" type="scalar" private="1">
+<code>/* Return number of time-periods. In case of cross-sectional data, T=1.
+return: int, number of time-periods. */
+if $datatype == 1
+  return 1
+elif $datatype == 2
+  return $nobs
+elif $datatype == 3
+  return $pd
+else
+  funcerr &quot;Data type not supported.&quot;
+endif
 </code>
 </gretl-function>
 <gretl-function name="helper_first_last" type="series" private="1">
@@ -290,6 +296,7 @@ return B[&quot;@fname&quot;]
 clear
 set verbose off
 include Imputer.gfn
+include PanelTools.gfn
 
 
 # This is how it works for panel datasets
@@ -297,13 +304,15 @@ nulldata 12 --preserve
 setobs 3 1:1 --stacked-time-series
 series y = {1; 2; 3;\
             4; NA; 6;\
-            NA; 8; 9;\
-            NA; NA; NA\
+            NA; 8; 1;\
+            NA; -12; NA\
             }
 
 print &quot;Impute by first valid value&quot;
-y_imputed = impute(y, &quot;first&quot;)
-print y y_imputed -o
+series y_first = impute(y, &quot;first&quot;)
+series y_mode = impute(y, &quot;mode&quot;)
+series y_min = impute(y, &quot;min&quot;)
+print y y_first y_mode y_min -o
 
 
 
@@ -314,7 +323,7 @@ setobs 4 &quot;2020:1&quot; --time-series
 series y = {1, NA, 3, NA}'
 series x = {1, 2, 2, NA}'
 
-# Impute by some method
+# Impute by method
 print &quot;Impute by minimum&quot;
 eval impute(y, &quot;min&quot;)
 

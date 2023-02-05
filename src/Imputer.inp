@@ -39,21 +39,21 @@ function bundle method_to_function_map (const string method)
                 else = _(method = "median", dtype = "series")\
                 )
     Map.cum = _(\
-                panel = _(method = "pcum", dtype = "series"),\
+                panel = _(method = "cum", dtype = "series"),\
                 else = _(method = "cum", dtype = "series")\
                 )
     Map.mode = _(\
-                panel = _(method = "mode", dtype = "series"),\
+                panel = _(method = "pmode", dtype = "series"),\
                 else = _(method = "mode", dtype = "series")\
                 )
 
     Map.first = _(\
-                panel = _(method = "first", dtype = "series"),\
+                panel = _(method = "pfirst", dtype = "series"),\
                 else = _(method = "first", dtype = "series")\
                 )
 
     Map.last = _(\
-                panel = _(method = "last", dtype = "series"),\
+                panel = _(method = "plast", dtype = "series"),\
                 else = _(method = "last", dtype = "series")\
                 )
 
@@ -80,7 +80,7 @@ function scalar get_number_of_time_periods (void)
     elif $datatype == 3
         return $pd
     else
-        funcerr("Data type not supported.")
+        funcerr "Data type not supported."
     endif
 end function
 
@@ -197,7 +197,8 @@ function series impute_by_sts (const series y "Target series",
         self = defaults
     endif
 
-    bundle Mod = STSM_setup(y, self.irregular, self.trend, self.slope, self.seasonal)
+    bundle Mod = STSM_setup(y, self.irregular, self.trend, self.slope,
+                            self.seasonal)
 
     STSM_estimate(&Mod)
     list components = STSM_components(Mod)
@@ -228,7 +229,7 @@ function string get_description (const string fname,
     B.pxfraction = sprintf("cross-sectional fractions of %s (value=%g)", yname, value)
     B.first = sprintf("first valid values of %s", yname)
     B.last = sprintf("last valid values of %s", yname)
-    B.mode = sprintf("modes of %s", yname)
+    B.mode = sprintf("mode of %s", yname)
     B.median = sprintf("median of %s", yname)
     B.pxmean = sprintf("cross-sectional means of %s", yname)
 

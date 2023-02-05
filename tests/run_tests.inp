@@ -95,7 +95,6 @@ end function
 test_max(Params, dataset)
 
 
-
 bundles Params = null
 Params = Params + _(input = "y1", method = "first", expected = {1, 2, 3, 4}')
 Params = Params + _(input = "y2", method = "first", expected = {2, 2, 3, 4}')
@@ -150,6 +149,50 @@ end function
 test_last(Params, dataset)
 
 
+nulldata 4 --preserve
+setobs 4 "2020:1" --time-series
+
+series y1 = {1, 2, 2, 3}'
+series y2 = {NA, 2, 2, 3}'
+series y3 = {NA, NA, 3, 3}'
+series y4 = {1, 2, 2, NA}'
+series y5 = {1, 2, NA, NA}'
+series y6 = {1, NA, 2, NA}'
+series y7 = {NA, NA, NA, NA}'
+
+
+bundles Params = null
+Params = Params + _(input = "y1", method = "mode", expected = {1, 2, 2, 3}')
+Params = Params + _(input = "y2", method = "mode", expected = {2, 2, 2, 3}')
+Params = Params + _(input = "y3", method = "mode", expected = {3, 3, 3, 3}')
+Params = Params + _(input = "y4", method = "mode", expected = {1, 2, 2, 2}')
+Params = Params + _(input = "y5", method = "mode", expected = {1, 2, 1, 1}')
+Params = Params + _(input = "y6", method = "mode", expected = {1, 1, 2, 1}')
+
+
+function void test_mode (const bundles P, const list L)
+    print "Start testing function impute() with 'mode'."
+
+    loop foreach i P
+        print i
+        # Given
+        string name = P[i].input
+        series y = L.@name
+        series expected = P[i].expected
+
+        # When
+        series actual = impute(y, P[i].method)
+
+        # Then
+        if nobs(actual) && nobs(expected)
+            assert(any_not_equal(actual, expected) == FALSE)
+        else
+            funcerr "Either actual or expected has no valid obs."
+        endif
+    endloop
+end function
+test_mode(Params, dataset)
+
 
 nulldata 4 --preserve
 assert(get_number_of_cross_units() == 1)
@@ -172,6 +215,7 @@ assert(get_number_of_time_periods() == $pd)
 
 
 
+open bjg.gdt --quiet
 
 function void test_impute_by_sts (const series y)
     print "Start testing function impute_by_sts() using default values."
@@ -190,10 +234,7 @@ function void test_impute_by_sts (const series y)
     # Then
     assert(actual == expected_n_missings)
 end function
-open bjg.gdt --quiet
 test_impute_by_sts(lg)
-
-
 
 
 
