@@ -5,7 +5,7 @@
 <version>0.1</version>
 <date>2023-02-05</date>
 <description>Impute missing values</description>
-<tags>C13 C52</tags>
+<tags>C10</tags>
 <help>
 This package offers various methods for imputing missing values, either in
 cross-sectional, time-series or panel data sets.
