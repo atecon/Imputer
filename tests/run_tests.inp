@@ -4,6 +4,7 @@ clear
 set assert stop
 include extra.gfn
 include StrucTiSM.gfn
+include PanelTools.gfn
 
 include "./src/Imputer.inp" --force
 
@@ -14,12 +15,11 @@ function scalar any_equal (const series y, const series x)
 
     scalar y_all_na = sum(missing(y) == TRUE) ? TRUE : FALSE
     scalar x_all_na = sum(missing(x) == TRUE) ? TRUE : FALSE
-    series difference = FALSE
+    series difference = NA
 
-    if y_all_na == FALSE && x_all_na == FALSE
-        series d = abs(y - x)
-        series difference = (d == 0) ? FALSE : TRUE
-    endif
+    series d = abs(y - x)
+    series difference = (d == 0) ? FALSE : TRUE
+    difference = misszero(difference)
 
     return (sum(difference) == 0 ? TRUE : FALSE)
 end function
@@ -248,7 +248,7 @@ test_pmin(Param, y)
 
 bundle Param = _(method = "max")
 matrix Param.expected = {1, 2, 2, 3}' | {4, 6, 6, 1}' | {8, 8, 1, 2}' |\
-                        {-12, -12, -12, 12}' | {NA, NA, NA, NA}'
+                        {12, -12, 12, 12}' | {NA, NA, NA, NA}'
 
 function void test_pmax (const bundle P, const series y)
     print "Start testing function impute() with 'max' for panels."
@@ -267,7 +267,7 @@ test_pmax(Param, y)
 
 bundle Param = _(method = "mean")
 matrix Param.expected = {1, 2, 2, 3}' | {4, 11/3, 6, 1}' | {11/3, 8, 1, 2}' |\
-                        {-12, -12, -12, 12}' | {NA, NA, NA, NA}'
+                        {0, -12, 0, 12}' | {NA, NA, NA, NA}'
 
 function void test_pmean (const bundle P, const series y)
     print "Start testing function impute() with 'mean' for panels."
@@ -285,8 +285,8 @@ test_pmean(Param, y)
 
 
 bundle Param = _(method = "last")
-matrix Param.expected = {1, 2, 2, 3}' | {4, 2, 6, 1}' | {2, 8, 1, 2}' |\
-                        {-12, -12, -12, 12}' | {NA, NA, NA, NA}'
+matrix Param.expected = {1, 2, 2, 3}' | {4, 1, 6, 1}' | {2, 8, 1, 2}' |\
+                        {12, -12, 12, 12}' | {NA, NA, NA, NA}'
 
 function void test_plast (const bundle P, const series y)
     print "Start testing function impute() with 'last' for panels."
@@ -297,14 +297,10 @@ function void test_plast (const bundle P, const series y)
     # When
     series actual = impute(y, P.method)
 
-    series d = actual - expected
-    print d -o
-
     # Then
-    eval any_equal(actual, expected)
     assert(any_equal(actual, expected) == TRUE)
 end function
-#test_plast(Param, y)
+test_plast(Param, y)
 
 
 bundle Param = _(method = "first")
@@ -323,7 +319,7 @@ function void test_pfirst (const bundle P, const series y)
     # Then
     assert(any_equal(actual, expected) == TRUE)
 end function
-#test_pfirst(Param, y)
+test_pfirst(Param, y)
 
 
 
