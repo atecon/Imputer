@@ -4,6 +4,8 @@ cross-sectional, time-series or panel data sets.
 Please report bugs or comments on the gretl mailing list or write to
 atecon@posteo.de.
 
+Note: The addon "extra" supplies a function named gap_filler() for imputing
+missing values. However, it only supports very basic methods of imputation.
 
 Public function
 ===============

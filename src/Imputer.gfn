@@ -3,7 +3,7 @@
 <gretl-function-package name="Imputer" minver="2021d">
 <author email="atecon@posteo.de">Artur Tarassow</author>
 <version>0.1</version>
-<date>2023-02-05</date>
+<date>2023-02-09</date>
 <description>Impute missing values</description>
 <tags>C10</tags>
 <help>
@@ -13,6 +13,8 @@ cross-sectional, time-series or panel data sets.
 Please report bugs or comments on the gretl mailing list or write to
 atecon@posteo.de.
 
+Note: The addon &quot;extra&quot; supplies a function named gap_filler() for imputing
+missing values. However, it only supports very basic methods of imputation.
 
 Public function
 ===============
