@@ -9,4 +9,6 @@ public = first impute impute_by_sts last mode
 help = Imputer_help.txt
 sample-script = Imputer_sample.inp
 depends = extra PanelTools StrucTiSM
-# provider = PanelTools
+gui-main = impute
+menu-attachment = MAINWIN/Variable
+label = Impute missing values

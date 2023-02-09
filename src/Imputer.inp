@@ -1,4 +1,5 @@
-function series impute (const series y, const string method)
+function series impute (const series y "Target series",
+                        const string method "Imputation method")
     /* Public function for imputing missing values of 'y' by some 'method'.
     return: series, imputed series. */
 
@@ -240,7 +241,8 @@ function string get_description (const string fname,
     B.cum = sprintf("cumuluated values of %s", yname)
     B.pcum = sprintf("cumuluated values of %s", yname)
     B.pquantile = sprintf("quantile (q=%g) values of %s", value, yname)
-    B.pxfraction = sprintf("cross-sectional fractions of %s (value=%g)", yname, value)
+    B.pxfraction = sprintf("cross-sectional fractions of %s (value=%g)",
+                           yname, value)
     B.first = sprintf("first valid values of %s", yname)
     B.last = sprintf("last valid values of %s", yname)
     B.mode = sprintf("mode of %s", yname)

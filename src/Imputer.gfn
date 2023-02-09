@@ -6,6 +6,8 @@
 <date>2023-02-09</date>
 <description>Impute missing values</description>
 <tags>C10</tags>
+<label>Impute missing values</label>
+<menu-attachment>MAINWIN/Variable</menu-attachment>
 <help>
 This package offers various methods for imputing missing values, either in
 cross-sectional, time-series or panel data sets.
@@ -15,6 +17,11 @@ atecon@posteo.de.
 
 Note: The addon &quot;extra&quot; supplies a function named gap_filler() for imputing
 missing values. However, it only supports very basic methods of imputation.
+
+GUI support
+===========
+You can call the functionality via the menu entry
+&quot;Variable -&gt; Impute missing values&quot;.
 
 Public function
 ===============
@@ -125,10 +132,14 @@ setinfo ret --description=&quot;@desc&quot;
 return ret
 </code>
 </gretl-function>
-<gretl-function name="impute" type="series">
+<gretl-function name="impute" type="series" pkg-role="gui-main">
  <params count="2">
-  <param name="y" type="series" const="true"/>
-  <param name="method" type="string" const="true"/>
+  <param name="y" type="series" const="true">
+<description>Target series</description>
+  </param>
+  <param name="method" type="string" const="true">
+<description>Imputation method</description>
+  </param>
  </params>
 <code>/* Public function for imputing missing values of 'y' by some 'method'.
 return: series, imputed series. */

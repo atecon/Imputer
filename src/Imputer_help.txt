@@ -7,6 +7,11 @@ atecon@posteo.de.
 Note: The addon "extra" supplies a function named gap_filler() for imputing
 missing values. However, it only supports very basic methods of imputation.
 
+GUI support
+===========
+You can call the functionality via the menu entry
+"Variable -> Impute missing values".
+
 Public function
 ===============
 
