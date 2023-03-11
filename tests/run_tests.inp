@@ -220,6 +220,63 @@ setobs 3 1:1 --stacked-time-series
 assert(get_number_of_cross_units() == 4)
 
 
+nulldata 6 --preserve
+
+series y1 = {NA, 2, NA, NA, 3, NA}'
+
+bundles Params = null
+Params = Params + _(input = "y1", method = "backfill",
+                    expected = {2, 2, 3, 3, 3, NA}')
+function void test_backfill (const bundles P, const list L)
+    print "Start testing function impute() with 'backfill'."
+
+    loop foreach i P
+        # Given
+        string name = P[i].input
+        series y = L.@name
+        series expected = P[i].expected
+
+        # When
+        series actual = impute(y, P[i].method)
+        print y actual expected -o
+
+        # Then
+        assert(any_equal(actual, expected) == TRUE)
+    endloop
+end function
+test_backfill(Params, dataset)
+
+
+
+nulldata 6 --preserve
+
+series y1 = {NA, 2, NA, NA, 3, NA}'
+
+bundles Params = null
+Params = Params + _(input = "y1", method = "frontfill",
+                    expected = {NA, 2, 2, 2, 3, 3}')
+function void test_frontfill (const bundles P, const list L)
+    print "Start testing function impute() with 'frontfill'."
+
+    loop foreach i P
+        # Given
+        string name = P[i].input
+        series y = L.@name
+        series expected = P[i].expected
+
+        # When
+        series actual = impute(y, P[i].method)
+        print actual
+        print expected
+
+        # Then
+        assert(any_equal(actual, expected) == TRUE)
+    endloop
+end function
+test_frontfill(Params, dataset)
+
+
+
 # ================== TIME-SERIES ============================
 
 nulldata 4 --preserve
@@ -349,7 +406,6 @@ series y5 = {1, 2, NA, NA}'
 series y6 = {1, NA, 2, NA}'
 series y7 = {NA, NA, NA, NA}'
 
-
 bundles Params = null
 Params = Params + _(input = "y1", method = "mode", expected = {1, 2, 2, 3}')
 Params = Params + _(input = "y2", method = "mode", expected = {2, 2, 2, 3}')
@@ -380,6 +436,63 @@ function void test_mode (const bundles P, const list L)
     endloop
 end function
 test_mode(Params, dataset)
+
+
+nulldata 6 --preserve
+setobs 6 "2020:1" --time-series
+
+series y1 = {NA, 2, NA, NA, 3, NA}'
+
+bundles Params = null
+Params = Params + _(input = "y1", method = "backfill",
+                    expected = {2, 2, 3, 3, 3, NA}')
+function void test_backfill (const bundles P, const list L)
+    print "Start testing function impute() with 'backfill'."
+
+    loop foreach i P
+        # Given
+        string name = P[i].input
+        series y = L.@name
+        series expected = P[i].expected
+
+        # When
+        series actual = impute(y, P[i].method)
+
+        # Then
+        assert(any_equal(actual, expected) == TRUE)
+    endloop
+end function
+test_backfill(Params, dataset)
+
+
+
+nulldata 6 --preserve
+setobs 6 "2020:1" --time-series
+
+series y1 = {NA, 2, NA, NA, 3, NA}'
+
+bundles Params = null
+Params = Params + _(input = "y1", method = "frontfill",
+                    expected = {NA, 2, 2, 2, 3, 3}')
+function void test_frontfill (const bundles P, const list L)
+    print "Start testing function impute() with 'frontfill'."
+
+    loop foreach i P
+        # Given
+        string name = P[i].input
+        series y = L.@name
+        series expected = P[i].expected
+
+        # When
+        series actual = impute(y, P[i].method)
+        print actual
+        print expected
+
+        # Then
+        assert(any_equal(actual, expected) == TRUE)
+    endloop
+end function
+test_frontfill(Params, dataset)
 
 
 # ================== PANEL ============================

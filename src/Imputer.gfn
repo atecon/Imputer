@@ -9,10 +9,192 @@
 <label>Impute missing values</label>
 <menu-attachment>MAINWIN/Variable</menu-attachment>
 <help>
+This package offers various methods for imputing missing values, either in
+cross-sectional, time-series or panel data sets.
 
+Please report bugs or comments on the gretl mailing list or write to
+atecon@posteo.de.
+
+Note: The addon &quot;extra&quot; supplies a function named gap_filler() for imputing
+missing values. However, it only supports very basic methods of imputation.
+
+GUI support
+===========
+You can call the functionality via the menu entry
+&quot;Variable -&gt; Impute missing values&quot;.
+
+Public function
+===============
+
+impute(const series y, const string method)
+========
+Call method for imputing missing values of series &quot;y&quot;.
+
+Parameters:
+-----------
+y       -- series, target on which to impute missing values
+method  -- string, method (or strategy) by which to impute missing values.
+           Note, in case of a panel dataset, the method is applied to each
+           cross-sectional unit separately. The following methods are supported
+
+  &quot;min&quot;:    Replace missing values using the minimum of 'y'
+  &quot;max&quot;:    Replace missing values using the maximum of 'y'
+  &quot;mean&quot;:   Replace missing values using the mean value of 'y'
+  &quot;median&quot;: Replace missing values using the median value of 'y'
+  &quot;cum&quot;:    Replace missing values using the cumulated value of 'y'
+  &quot;mode&quot;:   Replace missing values using the most frequent value of 'y'
+            &quot;first&quot;: Replace missing values using the first valid
+            observation value of 'y'
+  &quot;last&quot;:   Replace missing values using the last valid observation value of
+            'y'
+  &quot;frontfill&quot;: Propagate last valid observation forward to next valid value
+               (does not work for panel data)
+  &quot;backfill&quot;: Use next valid observation to fill gap (does not work for panel
+              data)
+Returns:
+--------
+Original series 'y' but with replaced missing values.
+
+
+
+impute_by_sts(const series y, bundle opts[null])
+========
+Impute missing values of 'y' by means of a structural time-series model (using
+the 'StrucTiSM' package). For details see the manual of the 'StrucTiSM'
+package. Works only on time-series dataset.
+
+Parameters:
+-----------
+y       -- series, target on which to impute missing values
+opts    -- bundle, Optional key-value pairs can be passed to determine the
+           type of components which are passed to the STSM_setup() function:
+             &quot;seasonal&quot; (default 2 = stochastic with dummies)
+               Other value(s): 0 = none, 1 = stochastic with trigonometric
+                 terms, 3 = deterministic dummies
+             &quot;slope&quot; (default: 1 = stochastic)
+               Other value(s): 0 = none, 2 = deterministic
+             &quot;trend&quot; (default: 1 = stochastic)
+               Other value(s): 2 = deterministic
+             &quot;irregular&quot; (default: 1(=TRUE) = with irregular component)
+               Other value(s): 0(=FALSE) = without irregular component
+
+Returns:
+--------
+Original series 'y' but with replaced missing values.
+
+backfill(const series y)
+========
+Use next valid observation to fill gap. The function does not work for panel 
+data.
+It works as Pandas' fillna() &quot;bfill&quot; method 
+(https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.fillna.html)
+
+Parameters:
+-----------
+y       -- series, target series
+
+Returns:
+--------
+Series with imputed values. If no valid values exists for a unit, NA is 
+returned.  By definition, if the first observation is missing, this cannot be 
+imputed by this strategy.
+
+
+first(const series y)
+========
+Compute first valid value for cross-sectional and time-series datasets,
+respectively. In case of a panel dataset, the first valid value of each panel
+unit is obtained instead (equivalent to the pfirst() function of the
+&quot;PanelTools&quot; package).
+
+Parameters:
+-----------
+y       -- series, target series
+
+Returns:
+--------
+Series with the first valid value of &quot;y&quot; (for each cross-sectional in case of
+a panel dataset). If no valid values exists for a unit, NA is returned.
+
+
+frontfill(const series y)
+========
+Propagate last valid observation forward to next valid value. The function does 
+not work for panel data. It works as Pandas' fillna() &quot;ffill&quot; method 
+(https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.fillna.html)
+
+Parameters:
+-----------
+y       -- series, target series
+
+Returns:
+--------
+Series with imputed values. If no valid values exists for a unit, NA is 
+returned. By definition, if the last observation is missing, this cannot be 
+imputed by this strategy.
+
+
+last(const series y)
+========
+Compute last valid value for cross-sectional and time-series datasets,
+respectively. In case of a panel dataset, the last valid value of each panel
+unit is obtained instead (equivalent to the plast() function of the
+&quot;PanelTools&quot; package).
+
+Parameters:
+-----------
+y       -- series, target series
+
+Returns:
+--------
+Series with the last valid value of &quot;y&quot; (for each cross-sectional in case of a
+panel dataset). If no valid values exists for a unit, NA is returned.
+
+
+Changelog:
+----------
+Version 0.2 (March 2023):
+  - Add functions for front- and back-filling missing data
+  - Fix bug with cross-sectional data: imputation failed
+
+Version 0.1 (February 2023):
+  - Initial version
 </help>
 <depends count="3">
 extra PanelTools StrucTiSM </depends>
+<gretl-function name="backfill" type="series">
+ <params count="1">
+  <param name="y" type="series" const="true"/>
+ </params>
+<code>/* Use next valid observation to fill gap. */
+errorif($datatype == 3, &quot;Only works with cross-sectional or time-series data.&quot;)
+series miss = missing(y)
+series ret = y
+scalar nmiss = sum(miss)
+loop i=1..($nobs-1)  # the very last observation cannot be imputed
+  if miss[i] == TRUE
+    scalar value = NA
+    loop k=(i+1)..$nobs
+      if ok(y[k])
+        scalar value = y[k]
+        break
+      endif
+    endloop
+    if ok(value)
+      ret[i] = value
+      series miss[i] = FALSE
+      nmiss--
+    endif
+  endif
+  if nmiss == 0
+    break
+  endif
+endloop
+string desc = get_description(&quot;backfill&quot;, argname(y), -1)
+setinfo ret --description=&quot;@desc&quot;
+return ret
+</code>
+</gretl-function>
 <gretl-function name="first" type="series">
  <params count="1">
   <param name="y" type="series" const="true"/>
@@ -20,6 +202,39 @@ extra PanelTools StrucTiSM </depends>
 <code>/* Compute first valid value for each panel unit. Expand this constant value for each unit to a series. */
 series ret = helper_first_last(y, FALSE)
 string desc = get_description(&quot;first&quot;, argname(y), -1)
+setinfo ret --description=&quot;@desc&quot;
+return ret
+</code>
+</gretl-function>
+<gretl-function name="frontfill" type="series">
+ <params count="1">
+  <param name="y" type="series" const="true"/>
+ </params>
+<code>/* Propagate last valid observation forward to next valid value. */
+errorif($datatype == 3, &quot;Only works with cross-sectional or time-series data.&quot;)
+series miss = missing(y)
+series ret = y
+scalar nmiss = sum(miss)
+loop i=2..$nobs # the very first observation cannot be imputed
+  if miss[i] == TRUE
+    scalar value = NA
+    loop k=(i-1)..1 --decr
+      if ok(y[k])
+        scalar value = y[k]
+        break
+      endif
+    endloop
+    if ok(value)
+      ret[i] = value
+      miss[i] = FALSE
+      nmiss--
+    endif
+  endif
+  if nmiss == 0
+    break
+  endif
+endloop
+string desc = get_description(&quot;frontfill&quot;, argname(y), -1)
 setinfo ret --description=&quot;@desc&quot;
 return ret
 </code>
@@ -134,6 +349,8 @@ Map.cum = _( panel = _(method = &quot;cum&quot;, dtype = &quot;series&quot;), el
 Map.mode = _( panel = _(method = &quot;pmode&quot;, dtype = &quot;series&quot;), else = _(method = &quot;mode&quot;, dtype = &quot;series&quot;) )
 Map.first = _( panel = _(method = &quot;pfirst&quot;, dtype = &quot;series&quot;), else = _(method = &quot;first&quot;, dtype = &quot;series&quot;) )
 Map.last = _( panel = _(method = &quot;plast&quot;, dtype = &quot;series&quot;), else = _(method = &quot;last&quot;, dtype = &quot;series&quot;) )
+Map.backfill = _( else = _(method = &quot;backfill&quot;, dtype = &quot;series&quot;) )
+Map.frontfill = _( else = _(method = &quot;frontfill&quot;, dtype = &quot;series&quot;) )
 return Map[&quot;@method&quot;]
 </code>
 </gretl-function>
@@ -219,6 +436,8 @@ B.last = sprintf(&quot;last valid values of %s&quot;, yname)
 B.mode = sprintf(&quot;mode of %s&quot;, yname)
 B.median = sprintf(&quot;median of %s&quot;, yname)
 B.pxmean = sprintf(&quot;cross-sectional means of %s&quot;, yname)
+B.backfill = sprintf(&quot;backfill of %s&quot;, yname)
+B.frontfill = sprintf(&quot;frontfill of %s&quot;, yname)
 return B[&quot;@fname&quot;]
 </code>
 </gretl-function>

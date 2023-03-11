@@ -65,6 +65,14 @@ function bundle method_to_function_map (const string method)
                 else = _(method = "last", dtype = "series")\
                 )
 
+    Map.backfill = _(\
+                else = _(method = "backfill", dtype = "series")\
+                )
+
+    Map.frontfill = _(\
+                else = _(method = "frontfill", dtype = "series")\
+                )
+
     return Map["@method"]
 end function
 
@@ -177,6 +185,82 @@ function series last (const series y)
 end function
 
 
+function series backfill (const series y)
+    /* Use next valid observation to fill gap. */
+
+    errorif($datatype == 3, "Only works with cross-sectional or time-series data.")
+
+    series miss = missing(y)
+    series ret = y
+    scalar nmiss = sum(miss)
+
+    loop i=1..($nobs-1)  # the very last observation cannot be imputed
+        if miss[i] == TRUE
+            scalar value = NA
+
+            loop k=(i+1)..$nobs
+                if ok(y[k])
+                    scalar value = y[k]
+                    break
+                endif
+            endloop
+            if ok(value)
+                ret[i] = value
+                series miss[i] = FALSE
+                nmiss--
+            endif
+        endif
+        if nmiss == 0
+            break
+        endif
+    endloop
+
+    string desc = get_description("backfill", argname(y), -1)
+    setinfo ret --description="@desc"
+
+    return ret
+end function
+
+
+function series frontfill (const series y)
+    /* Propagate last valid observation forward to next valid value. */
+
+    errorif($datatype == 3, "Only works with cross-sectional or time-series data.")
+
+    series miss = missing(y)
+    series ret = y
+    scalar nmiss = sum(miss)
+
+    loop i=2..$nobs # the very first observation cannot be imputed
+        if miss[i] == TRUE
+            scalar value = NA
+
+            loop k=(i-1)..1 --decr
+                if ok(y[k])
+                    scalar value = y[k]
+                    break
+                endif
+            endloop
+
+            if ok(value)
+                ret[i] = value
+                miss[i] = FALSE
+                nmiss--
+            endif
+        endif
+        if nmiss == 0
+            break
+        endif
+    endloop
+
+    string desc = get_description("frontfill", argname(y), -1)
+    setinfo ret --description="@desc"
+
+    return ret
+end function
+
+
+
 function bundle sts_default_values (void)
     /* Default values of STS model. */
 
@@ -254,6 +338,8 @@ function string get_description (const string fname,
     B.mode = sprintf("mode of %s", yname)
     B.median = sprintf("median of %s", yname)
     B.pxmean = sprintf("cross-sectional means of %s", yname)
+    B.backfill = sprintf("backfill of %s", yname)
+    B.frontfill = sprintf("frontfill of %s", yname)
 
     return B["@fname"]
 end function

@@ -36,7 +36,10 @@ method  -- string, method (or strategy) by which to impute missing values.
             observation value of 'y'
   "last":   Replace missing values using the last valid observation value of
             'y'
-
+  "frontfill": Propagate last valid observation forward to next valid value
+               (does not work for panel data)
+  "backfill": Use next valid observation to fill gap (does not work for panel
+              data)
 Returns:
 --------
 Original series 'y' but with replaced missing values.
@@ -68,6 +71,23 @@ Returns:
 --------
 Original series 'y' but with replaced missing values.
 
+backfill(const series y)
+========
+Use next valid observation to fill gap. The function does not work for panel
+data.
+It works as Pandas' fillna() "bfill" method
+(https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.fillna.html)
+
+Parameters:
+-----------
+y       -- series, target series
+
+Returns:
+--------
+Series with imputed values. If no valid values exists for a unit, NA is
+returned.  By definition, if the first observation is missing, this cannot be
+imputed by this strategy.
+
 
 first(const series y)
 ========
@@ -84,6 +104,23 @@ Returns:
 --------
 Series with the first valid value of "y" (for each cross-sectional in case of
 a panel dataset). If no valid values exists for a unit, NA is returned.
+
+
+frontfill(const series y)
+========
+Propagate last valid observation forward to next valid value. The function does
+not work for panel data. It works as Pandas' fillna() "ffill" method
+(https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.fillna.html)
+
+Parameters:
+-----------
+y       -- series, target series
+
+Returns:
+--------
+Series with imputed values. If no valid values exists for a unit, NA is
+returned. By definition, if the last observation is missing, this cannot be
+imputed by this strategy.
 
 
 last(const series y)
@@ -106,6 +143,7 @@ panel dataset). If no valid values exists for a unit, NA is returned.
 Changelog:
 ----------
 Version 0.2 (March 2023):
+  - Add functions for front- and back-filling missing data
   - Fix bug with cross-sectional data: imputation failed
 
 Version 0.1 (February 2023):
