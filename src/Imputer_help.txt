@@ -1,0 +1,112 @@
+This package offers various methods for imputing missing values, either in
+cross-sectional, time-series or panel data sets.
+
+Please report bugs or comments on the gretl mailing list or write to
+atecon@posteo.de.
+
+Note: The addon "extra" supplies a function named gap_filler() for imputing
+missing values. However, it only supports very basic methods of imputation.
+
+GUI support
+===========
+You can call the functionality via the menu entry
+"Variable -> Impute missing values".
+
+Public function
+===============
+
+impute(const series y, const string method)
+========
+Call method for imputing missing values of series "y".
+
+Parameters:
+-----------
+y       -- series, target on which to impute missing values
+method  -- string, method (or strategy) by which to impute missing values.
+           Note, in case of a panel dataset, the method is applied to each
+           cross-sectional unit separately. The following methods are supported
+
+  "min":    Replace missing values using the minimum of 'y'
+  "max":    Replace missing values using the maximum of 'y'
+  "mean":   Replace missing values using the mean value of 'y'
+  "median": Replace missing values using the median value of 'y'
+  "cum":    Replace missing values using the cumulated value of 'y'
+  "mode":   Replace missing values using the most frequent value of 'y'
+            "first": Replace missing values using the first valid
+            observation value of 'y'
+  "last":   Replace missing values using the last valid observation value of
+            'y'
+
+Returns:
+--------
+Original series 'y' but with replaced missing values.
+
+
+
+impute_by_sts(const series y, bundle opts[null])
+========
+Impute missing values of 'y' by means of a structural time-series model (using
+the 'StrucTiSM' package). For details see the manual of the 'StrucTiSM'
+package. Works only on time-series dataset.
+
+Parameters:
+-----------
+y       -- series, target on which to impute missing values
+opts    -- bundle, Optional key-value pairs can be passed to determine the
+           type of components which are passed to the STSM_setup() function:
+             "seasonal" (default 2 = stochastic with dummies)
+               Other value(s): 0 = none, 1 = stochastic with trigonometric
+                 terms, 3 = deterministic dummies
+             "slope" (default: 1 = stochastic)
+               Other value(s): 0 = none, 2 = deterministic
+             "trend" (default: 1 = stochastic)
+               Other value(s): 2 = deterministic
+             "irregular" (default: 1(=TRUE) = with irregular component)
+               Other value(s): 0(=FALSE) = without irregular component
+
+Returns:
+--------
+Original series 'y' but with replaced missing values.
+
+
+first(const series y)
+========
+Compute first valid value for cross-sectional and time-series datasets,
+respectively. In case of a panel dataset, the first valid value of each panel
+unit is obtained instead (equivalent to the pfirst() function of the
+"PanelTools" package).
+
+Parameters:
+-----------
+y       -- series, target series
+
+Returns:
+--------
+Series with the first valid value of "y" (for each cross-sectional in case of
+a panel dataset). If no valid values exists for a unit, NA is returned.
+
+
+last(const series y)
+========
+Compute last valid value for cross-sectional and time-series datasets,
+respectively. In case of a panel dataset, the last valid value of each panel
+unit is obtained instead (equivalent to the plast() function of the
+"PanelTools" package).
+
+Parameters:
+-----------
+y       -- series, target series
+
+Returns:
+--------
+Series with the last valid value of "y" (for each cross-sectional in case of a
+panel dataset). If no valid values exists for a unit, NA is returned.
+
+
+Changelog:
+----------
+Version 0.2 (March 2023):
+  - Fix bug with cross-sectional data: imputation failed
+
+Version 0.1 (February 2023):
+  - Initial version
