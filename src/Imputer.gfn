@@ -2,122 +2,14 @@
 <gretl-functions>
 <gretl-function-package name="Imputer" minver="2021d">
 <author email="atecon@posteo.de">Artur Tarassow</author>
-<version>0.1</version>
-<date>2023-02-09</date>
+<version>0.2</version>
+<date>2023-03-11</date>
 <description>Impute missing values</description>
 <tags>C10</tags>
 <label>Impute missing values</label>
 <menu-attachment>MAINWIN/Variable</menu-attachment>
 <help>
-This package offers various methods for imputing missing values, either in
-cross-sectional, time-series or panel data sets.
 
-Please report bugs or comments on the gretl mailing list or write to
-atecon@posteo.de.
-
-Note: The addon &quot;extra&quot; supplies a function named gap_filler() for imputing
-missing values. However, it only supports very basic methods of imputation.
-
-GUI support
-===========
-You can call the functionality via the menu entry
-&quot;Variable -&gt; Impute missing values&quot;.
-
-Public function
-===============
-
-impute(const series y, const string method)
-========
-Call method for imputing missing values of series &quot;y&quot;.
-
-Parameters:
------------
-y       -- series, target on which to impute missing values
-method  -- string, method (or strategy) by which to impute missing values.
-           Note, in case of a panel dataset, the method is applied to each
-           cross-sectional unit separately. The following methods are supported
-
-  &quot;min&quot;:    Replace missing values using the minimum of 'y'
-  &quot;max&quot;:    Replace missing values using the maximum of 'y'
-  &quot;mean&quot;:   Replace missing values using the mean value of 'y'
-  &quot;median&quot;: Replace missing values using the median value of 'y'
-  &quot;cum&quot;:    Replace missing values using the cumulated value of 'y'
-  &quot;mode&quot;:   Replace missing values using the most frequent value of 'y'
-            &quot;first&quot;: Replace missing values using the first valid
-            observation value of 'y'
-  &quot;last&quot;:   Replace missing values using the last valid observation value of
-            'y'
-
-Returns:
---------
-Original series 'y' but with replaced missing values.
-
-
-
-impute_by_sts(const series y, bundle opts[null])
-========
-Impute missing values of 'y' by means of a structural time-series model (using
-the 'StrucTiSM' package). For details see the manual of the 'StrucTiSM'
-package. Works only on time-series dataset.
-
-Parameters:
------------
-y       -- series, target on which to impute missing values
-opts    -- bundle, Optional key-value pairs can be passed to determine the
-           type of components which are passed to the STSM_setup() function:
-             &quot;seasonal&quot; (default 2 = stochastic with dummies)
-               Other value(s): 0 = none, 1 = stochastic with trigonometric
-                 terms, 3 = deterministic dummies
-             &quot;slope&quot; (default: 1 = stochastic)
-               Other value(s): 0 = none, 2 = deterministic
-             &quot;trend&quot; (default: 1 = stochastic)
-               Other value(s): 2 = deterministic
-             &quot;irregular&quot; (default: 1(=TRUE) = with irregular component)
-               Other value(s): 0(=FALSE) = without irregular component
-
-Returns:
---------
-Original series 'y' but with replaced missing values.
-
-
-first(const series y)
-========
-Compute first valid value for cross-sectional and time-series datasets,
-respectively. In case of a panel dataset, the first valid value of each panel
-unit is obtained instead (equivalent to the pfirst() function of the
-&quot;PanelTools&quot; package).
-
-Parameters:
------------
-y       -- series, target series
-
-Returns:
---------
-Series with the first valid value of &quot;y&quot; (for each cross-sectional in case of
-a panel dataset). If no valid values exists for a unit, NA is returned.
-
-
-last(const series y)
-========
-Compute last valid value for cross-sectional and time-series datasets,
-respectively. In case of a panel dataset, the last valid value of each panel
-unit is obtained instead (equivalent to the plast() function of the
-&quot;PanelTools&quot; package).
-
-Parameters:
------------
-y       -- series, target series
-
-Returns:
---------
-Series with the last valid value of &quot;y&quot; (for each cross-sectional in case of a
-panel dataset). If no valid values exists for a unit, NA is returned.
-
-
-Changelog:
-----------
-Version 0.1 (February 2023):
-  - Initial version
 </help>
 <depends count="3">
 extra PanelTools StrucTiSM </depends>
@@ -248,14 +140,20 @@ return Map[&quot;@method&quot;]
 <gretl-function name="get_number_of_cross_units" type="scalar" private="1">
 <code>/* Return number of cross-sectional units. In case of time-series and cross-sectional data, set N = 1.
 return: int, number of cross-sectional units. */
-return $datatype == 3 ? ($nobs / $pd) : 1
+if $datatype == 1
+  return 1
+elif $datatype == 2
+  return 1
+elif $datatype == 3
+  return ($nobs / $pd)
+endif
 </code>
 </gretl-function>
 <gretl-function name="get_number_of_time_periods" type="scalar" private="1">
 <code>/* Return number of time-periods. In case of cross-sectional data, T=1.
 return: int, number of time-periods. */
 if $datatype == 1
-  return 1
+  return $nobs
 elif $datatype == 2
   return $nobs
 elif $datatype == 3
