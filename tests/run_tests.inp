@@ -8,7 +8,6 @@ include PanelTools.gfn
 
 include "./src/Imputer.inp" --force
 
-
 function scalar any_equal (const series y, const series x)
     /* Check two series for equality.
     return: scalar, TRUE if all entries are equal; this also includes the case where for both series all entries are NA. In case, the series have unequal entries at the i-th position, return FALSE. */
@@ -24,22 +23,201 @@ function scalar any_equal (const series y, const series x)
     return (sum(difference) == 0 ? TRUE : FALSE)
 end function
 
+function list get_y_ts (void)
+    series y1 = {1, 2, 3, 4}'
+    series y2 = {NA, 2, 3, 4}'
+    series y3 = {NA, NA, 3, 4}'
+    series y4 = {1, 2, 3, NA}'
+    series y5 = {1, 2, NA, NA}'
+    series y6 = {1, NA, 3, NA}'
+    series y7 = {NA, NA, NA, NA}'
 
+    return deflist(y1, y2, y3, y4, y5, y6, y7)
+end function
+
+function series get_y_panel (void)
+    series y = {1; 2; 2; 3;\
+                4; NA; 6; 1;\
+                NA; 8; 1; 2;\
+                NA; -12; NA; 12;\
+                NA; NA; NA; NA\
+                }
+
+    return y
+end function
+
+
+# ================== PANEL ==================================
 
 # ================== TIME-SERIES ============================
+
+nulldata 4 --preserve
+setobs 4 "2020:1" --time-series
+
+list L = get_y_ts()
+
+bundles Params = null
+Params = Params + _(input = "y1", method = "min", expected = {1, 2, 3, 4}')
+Params = Params + _(input = "y2", method = "min", expected = {2, 2, 3, 4}')
+Params = Params + _(input = "y3", method = "min", expected = {3, 3, 3, 4}')
+Params = Params + _(input = "y4", method = "min", expected = {1, 2, 3, 1}')
+Params = Params + _(input = "y5", method = "min", expected = {1, 2, 1, 1}')
+Params = Params + _(input = "y6", method = "min", expected = {1, 1, 3, 1}')
+Params = Params + _(input = "y7", method = "min", expected = {NA, NA, NA, NA}')
+
+
+function void test_min (const bundles P, const list L)
+    print "Start testing function impute() with 'min'."
+
+    loop foreach i P
+        # Given
+        string name = P[i].input
+        series y = L.@name
+        series expected = P[i].expected
+
+        # When
+        series actual = impute(y, P[i].method)
+
+        series d = actual - expected
+
+        # Then
+        assert(any_equal(actual, expected) == TRUE)
+    endloop
+end function
+test_min(Params, dataset)
+
+bundles Params = null
+Params = Params + _(input = "y1", method = "max", expected = {1, 2, 3, 4}')
+Params = Params + _(input = "y2", method = "max", expected = {4, 2, 3, 4}')
+Params = Params + _(input = "y3", method = "max", expected = {4, 4, 3, 4}')
+Params = Params + _(input = "y4", method = "max", expected = {1, 2, 3, 3}')
+Params = Params + _(input = "y5", method = "max", expected = {1, 2, 2, 2}')
+Params = Params + _(input = "y6", method = "max", expected = {1, 3, 3, 3}')
+Params = Params + _(input = "y7", method = "max", expected = {NA, NA, NA, NA}')
+function void test_max (const bundles P, const list L)
+    print "Start testing function impute() with 'max'."
+
+    loop foreach i P
+        # Given
+        string name = P[i].input
+        series y = L.@name
+        series expected = P[i].expected
+
+        # When
+        series actual = impute(y, P[i].method)
+
+        # Then
+        assert(any_equal(actual, expected) == TRUE)
+    endloop
+end function
+test_max(Params, dataset)
+
+
+bundles Params = null
+Params = Params + _(input = "y1", method = "first", expected = {1, 2, 3, 4}')
+Params = Params + _(input = "y2", method = "first", expected = {2, 2, 3, 4}')
+Params = Params + _(input = "y3", method = "first", expected = {3, 3, 3, 4}')
+Params = Params + _(input = "y4", method = "first", expected = {1, 2, 3, 1}')
+Params = Params + _(input = "y5", method = "first", expected = {1, 2, 1, 1}')
+Params = Params + _(input = "y6", method = "first", expected = {1, 1, 3, 1}')
+Params = Params + _(input = "y7", method = "first", expected = {NA, NA, NA, NA}')
+function void test_first (const bundles P, const list L)
+    print "Start testing function impute() with 'first'."
+
+    loop foreach i P
+        # Given
+        string name = P[i].input
+        series y = L.@name
+        series expected = P[i].expected
+
+        # When
+        series actual = impute(y, P[i].method)
+
+        # Then
+        assert(any_equal(actual, expected) == TRUE)
+    endloop
+end function
+test_first(Params, dataset)
+
+
+bundles Params = null
+Params = Params + _(input = "y1", method = "last", expected = {1, 2, 3, 4}')
+Params = Params + _(input = "y2", method = "last", expected = {4, 2, 3, 4}')
+Params = Params + _(input = "y3", method = "last", expected = {4, 4, 3, 4}')
+Params = Params + _(input = "y4", method = "last", expected = {1, 2, 3, 3}')
+Params = Params + _(input = "y5", method = "last", expected = {1, 2, 2, 2}')
+Params = Params + _(input = "y6", method = "last", expected = {1, 3, 3, 3}')
+Params = Params + _(input = "y7", method = "last", expected = {NA, NA, NA, NA}')
+function void test_last (const bundles P, const list L)
+    print "Start testing function impute() with 'last'."
+
+    loop foreach i P
+        # Given
+        string name = P[i].input
+        series y = L.@name
+        series expected = P[i].expected
+
+        # When
+        series actual = impute(y, P[i].method)
+
+        # Then
+        assert(any_equal(actual, expected) == TRUE)
+    endloop
+end function
+test_last(Params, dataset)
 
 
 nulldata 4 --preserve
 setobs 4 "2020:1" --time-series
 
-series y1 = {1, 2, 3, 4}'
-series y2 = {NA, 2, 3, 4}'
-series y3 = {NA, NA, 3, 4}'
-series y4 = {1, 2, 3, NA}'
+series y1 = {1, 2, 2, 3}'
+series y2 = {NA, 2, 2, 3}'
+series y3 = {NA, NA, 3, 3}'
+series y4 = {1, 2, 2, NA}'
 series y5 = {1, 2, NA, NA}'
-series y6 = {1, NA, 3, NA}'
+series y6 = {1, NA, 2, NA}'
 series y7 = {NA, NA, NA, NA}'
 
+
+bundles Params = null
+Params = Params + _(input = "y1", method = "mode", expected = {1, 2, 2, 3}')
+Params = Params + _(input = "y2", method = "mode", expected = {2, 2, 2, 3}')
+Params = Params + _(input = "y3", method = "mode", expected = {3, 3, 3, 3}')
+Params = Params + _(input = "y4", method = "mode", expected = {1, 2, 2, 2}')
+Params = Params + _(input = "y5", method = "mode", expected = {1, 2, 1, 1}')
+Params = Params + _(input = "y6", method = "mode", expected = {1, 1, 2, 1}')
+
+
+function void test_mode (const bundles P, const list L)
+    print "Start testing function impute() with 'mode'."
+
+    loop foreach i P
+        # Given
+        string name = P[i].input
+        series y = L.@name
+        series expected = P[i].expected
+
+        # When
+        series actual = impute(y, P[i].method)
+
+        # Then
+        if nobs(actual) && nobs(expected)
+            assert(any_equal(actual, expected) == TRUE)
+        else
+            funcerr "Either actual or expected has no valid obs."
+        endif
+    endloop
+end function
+test_mode(Params, dataset)
+
+
+
+# ================== TIME-SERIES ============================
+
+nulldata 4 --preserve
+setobs 4 "2020:1" --time-series
+
+list L = get_y_ts()
 
 bundles Params = null
 Params = Params + _(input = "y1", method = "min", expected = {1, 2, 3, 4}')
@@ -220,12 +398,8 @@ assert(get_number_of_time_periods() == $pd)
 
 nulldata 20 --preserve
 setobs 4 1:1 --stacked-time-series
-series y = {1; 2; 2; 3;\
-            4; NA; 6; 1;\
-            NA; 8; 1; 2;\
-            NA; -12; NA; 12;\
-            NA; NA; NA; NA\
-            }
+
+series y = get_y_panel()
 
 bundle Param = _(method = "min")
 matrix Param.expected = {1, 2, 2, 3}' | {4, 1, 6, 1}' | {1, 8, 1, 2}' |\
