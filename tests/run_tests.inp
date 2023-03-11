@@ -238,7 +238,6 @@ function void test_backfill (const bundles P, const list L)
 
         # When
         series actual = impute(y, P[i].method)
-        print y actual expected -o
 
         # Then
         assert(any_equal(actual, expected) == TRUE)
@@ -266,8 +265,6 @@ function void test_frontfill (const bundles P, const list L)
 
         # When
         series actual = impute(y, P[i].method)
-        print actual
-        print expected
 
         # Then
         assert(any_equal(actual, expected) == TRUE)
