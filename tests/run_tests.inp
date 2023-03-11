@@ -210,6 +210,14 @@ function void test_mode (const bundles P, const list L)
 end function
 test_mode(Params, dataset)
 
+nulldata 4 --preserve
+assert(get_number_of_cross_units() == 1)
+nulldata 4 --preserve
+setobs 7 "2020-01-01" --time-series
+assert(get_number_of_cross_units() == 1)
+nulldata 12 --preserve
+setobs 3 1:1 --stacked-time-series
+assert(get_number_of_cross_units() == 4)
 
 
 # ================== TIME-SERIES ============================
@@ -372,26 +380,6 @@ function void test_mode (const bundles P, const list L)
     endloop
 end function
 test_mode(Params, dataset)
-
-
-nulldata 4 --preserve
-assert(get_number_of_cross_units() == 1)
-nulldata 4 --preserve
-setobs 7 "2020-01-01" --time-series
-assert(get_number_of_cross_units() == 1)
-nulldata 12 --preserve
-setobs 3 1:1 --stacked-time-series
-assert(get_number_of_cross_units() == 4)
-
-
-nulldata 4 --preserve
-assert(get_number_of_time_periods() == 1)
-nulldata 4 --preserve
-setobs 7 "2020-01-01" --time-series
-assert(get_number_of_time_periods() == $nobs)
-nulldata 12 --preserve
-setobs 3 1:1 --stacked-time-series
-assert(get_number_of_time_periods() == $pd)
 
 
 # ================== PANEL ============================

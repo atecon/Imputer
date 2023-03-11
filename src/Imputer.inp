@@ -73,7 +73,13 @@ function scalar get_number_of_cross_units (void)
     /* Return number of cross-sectional units. In case of time-series and cross-sectional data, set N = 1.
     return: int, number of cross-sectional units. */
 
-    return $datatype == 3 ? ($nobs / $pd) : 1
+    if $datatype == 1
+        return 1
+    elif $datatype == 2
+        return 1
+    elif $datatype == 3
+        return ($nobs / $pd)
+    endif
 end function
 
 
@@ -82,7 +88,7 @@ function scalar get_number_of_time_periods (void)
     return: int, number of time-periods. */
 
     if $datatype == 1
-        return 1
+        return $nobs
     elif $datatype == 2
         return $nobs
     elif $datatype == 3
