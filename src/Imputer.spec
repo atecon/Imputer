@@ -1,10 +1,10 @@
 author = Artur Tarassow
 email = atecon@posteo.de
 version = 0.2
-date = 2023-03-11
+date = 2023-03-12
 description = Impute missing values
 tags = C10
-min-version = 2021d
+min-version = 2022b
 public = backfill first frontfill impute impute_by_sts last mode
 help = Imputer_help.txt
 sample-script = Imputer_sample.inp
