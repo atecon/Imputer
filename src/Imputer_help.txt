@@ -4,7 +4,7 @@ cross-sectional, time-series or panel data sets.
 Please report bugs or comments on the gretl mailing list or write to
 atecon@posteo.de.
 
-Note: The addon "extra" supplies a function named gap_filler() for imputing
+Note: The add-on "extra" supplies a function named gap_filler() for imputing
 missing values. However, it only supports very basic methods of imputation.
 
 GUI support
@@ -12,11 +12,12 @@ GUI support
 You can call the functionality via the menu entry
 "Variable -> Impute missing values".
 
-Public function
-===============
+Public functions
+================
 
+===========================================
 impute(const series y, const string method)
-========
+===========================================
 Call method for imputing missing values of series "y".
 
 Parameters:
@@ -32,8 +33,8 @@ method  -- string, method (or strategy) by which to impute missing values.
   "median": Replace missing values using the median value of 'y'
   "cum":    Replace missing values using the cumulated value of 'y'
   "mode":   Replace missing values using the most frequent value of 'y'
-            "first": Replace missing values using the first valid
-            observation value of 'y'
+  "first":  Replace missing values using the first valid observation value
+            of 'y'
   "last":   Replace missing values using the last valid observation value of
             'y'
   "frontfill": Propagate last valid observation forward to next valid value
@@ -43,11 +44,14 @@ method  -- string, method (or strategy) by which to impute missing values.
 Returns:
 --------
 Original series 'y' but with replaced missing values.
+HINT: For cross-sectional data the ordering is arbitrary, and you should be
+cautious with using strategies such as "first", "last", "frontfill" and
+"backfill", respectively.
 
 
-
+================================================
 impute_by_sts(const series y, bundle opts[null])
-========
+================================================
 Impute missing values of 'y' by means of a structural time-series model (using
 the 'StrucTiSM' package). For details see the manual of the 'StrucTiSM'
 package. Works only on time-series dataset.
@@ -71,8 +75,10 @@ Returns:
 --------
 Original series 'y' but with replaced missing values.
 
+
+========================
 backfill(const series y)
-========
+========================
 Use next valid observation to fill gap. The function does not work for panel
 data.
 It works as Pandas' fillna() "bfill" method
@@ -89,8 +95,9 @@ returned.  By definition, if the first observation is missing, this cannot be
 imputed by this strategy.
 
 
+=====================
 first(const series y)
-========
+=====================
 Compute first valid value for cross-sectional and time-series datasets,
 respectively. In case of a panel dataset, the first valid value of each panel
 unit is obtained instead (equivalent to the pfirst() function of the
@@ -106,8 +113,9 @@ Series with the first valid value of "y" (for each cross-sectional in case of
 a panel dataset). If no valid values exists for a unit, NA is returned.
 
 
+=========================
 frontfill(const series y)
-========
+=========================
 Propagate last valid observation forward to next valid value. The function does
 not work for panel data. It works as Pandas' fillna() "ffill" method
 (https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.fillna.html)
@@ -123,8 +131,9 @@ returned. By definition, if the last observation is missing, this cannot be
 imputed by this strategy.
 
 
+====================
 last(const series y)
-========
+====================
 Compute last valid value for cross-sectional and time-series datasets,
 respectively. In case of a panel dataset, the last valid value of each panel
 unit is obtained instead (equivalent to the plast() function of the
@@ -140,11 +149,13 @@ Series with the last valid value of "y" (for each cross-sectional in case of a
 panel dataset). If no valid values exists for a unit, NA is returned.
 
 
+==========
 Changelog:
-----------
+==========
 Version 0.2 (March 2023):
   - Add functions for front- and back-filling missing data
   - Fix bug with cross-sectional data: imputation failed
+  - New minimal required gretl version is 2022b
 
 Version 0.1 (February 2023):
   - Initial version
