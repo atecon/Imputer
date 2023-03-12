@@ -23,7 +23,7 @@ GUI support
 You can call the functionality via the menu entry
 &quot;Variable -&gt; Impute missing values&quot;.
 
-Public function
+Public functions
 ===============
 
 impute(const series y, const string method)
@@ -84,9 +84,9 @@ Original series 'y' but with replaced missing values.
 
 backfill(const series y)
 ========
-Use next valid observation to fill gap. The function does not work for panel 
+Use next valid observation to fill gap. The function does not work for panel
 data.
-It works as Pandas' fillna() &quot;bfill&quot; method 
+It works as Pandas' fillna() &quot;bfill&quot; method
 (https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.fillna.html)
 
 Parameters:
@@ -95,8 +95,8 @@ y       -- series, target series
 
 Returns:
 --------
-Series with imputed values. If no valid values exists for a unit, NA is 
-returned.  By definition, if the first observation is missing, this cannot be 
+Series with imputed values. If no valid values exists for a unit, NA is
+returned.  By definition, if the first observation is missing, this cannot be
 imputed by this strategy.
 
 
@@ -119,8 +119,8 @@ a panel dataset). If no valid values exists for a unit, NA is returned.
 
 frontfill(const series y)
 ========
-Propagate last valid observation forward to next valid value. The function does 
-not work for panel data. It works as Pandas' fillna() &quot;ffill&quot; method 
+Propagate last valid observation forward to next valid value. The function does
+not work for panel data. It works as Pandas' fillna() &quot;ffill&quot; method
 (https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.fillna.html)
 
 Parameters:
@@ -129,8 +129,8 @@ y       -- series, target series
 
 Returns:
 --------
-Series with imputed values. If no valid values exists for a unit, NA is 
-returned. By definition, if the last observation is missing, this cannot be 
+Series with imputed values. If no valid values exists for a unit, NA is
+returned. By definition, if the last observation is missing, this cannot be
 imputed by this strategy.
 
 
@@ -489,6 +489,12 @@ eval impute(y, &quot;median&quot;)
 
 print &quot;Impute by most frequent value&quot;
 eval impute(x, &quot;mode&quot;)
+
+print &quot;Impute by backfill strategy&quot;
+eval impute(x, &quot;backfill&quot;)
+
+print &quot;Impute by frontfill strategy&quot;
+eval impute(x, &quot;frontfill&quot;)
 
 
 # Replace missing values of time-series by STS model

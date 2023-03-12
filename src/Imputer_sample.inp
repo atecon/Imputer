@@ -46,6 +46,12 @@ eval impute(y, "median")
 print "Impute by most frequent value"
 eval impute(x, "mode")
 
+print "Impute by backfill strategy"
+eval impute(x, "backfill")
+
+print "Impute by frontfill strategy"
+eval impute(x, "frontfill")
+
 
 # Replace missing values of time-series by STS model
 # from the "StrucTiSM" package

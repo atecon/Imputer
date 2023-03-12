@@ -482,15 +482,12 @@ function void test_frontfill (const bundles P, const list L)
 
         # When
         series actual = impute(y, P[i].method)
-        print actual
-        print expected
 
         # Then
         assert(any_equal(actual, expected) == TRUE)
     endloop
 end function
 test_frontfill(Params, dataset)
-
 
 # ================== PANEL ============================
 
