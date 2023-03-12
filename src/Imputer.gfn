@@ -23,8 +23,8 @@ GUI support
 You can call the functionality via the menu entry
 &quot;Variable -&gt; Impute missing values&quot;.
 
-Public function
-===============
+Public functions
+================
 
 ===========================================
 impute(const series y, const string method)
@@ -44,10 +44,8 @@ method  -- string, method (or strategy) by which to impute missing values.
   &quot;median&quot;: Replace missing values using the median value of 'y'
   &quot;cum&quot;:    Replace missing values using the cumulated value of 'y'
   &quot;mode&quot;:   Replace missing values using the most frequent value of 'y'
-            &quot;first&quot;: Replace missing values using the first valid
-            observation value of 'y'
-  &quot;first&quot;:  Replace missing values using the first valid observation value of
-            'y'.
+  &quot;first&quot;:  Replace missing values using the first valid observation value
+            of 'y'
   &quot;last&quot;:   Replace missing values using the last valid observation value of
             'y'
   &quot;frontfill&quot;: Propagate last valid observation forward to next valid value
@@ -57,9 +55,9 @@ method  -- string, method (or strategy) by which to impute missing values.
 Returns:
 --------
 Original series 'y' but with replaced missing values.
-HINT: For cross-sectional data the ordering is arbitrary, and hence be cautious 
-with using the strategies &quot;first&quot;, &quot;last&quot;, &quot;frontfill&quot; and &quot;backfill&quot;, 
-respectively.
+HINT: For cross-sectional data the ordering is arbitrary, and you should be
+cautious with using strategies such as &quot;first&quot;, &quot;last&quot;, &quot;frontfill&quot; and
+&quot;backfill&quot;, respectively.
 
 
 ================================================
@@ -162,9 +160,9 @@ Series with the last valid value of &quot;y&quot; (for each cross-sectional in c
 panel dataset). If no valid values exists for a unit, NA is returned.
 
 
-=========================
+==========
 Changelog:
-=========================
+==========
 Version 0.2 (March 2023):
   - Add functions for front- and back-filling missing data
   - Fix bug with cross-sectional data: imputation failed
